@@ -19,25 +19,73 @@ from safsl_ast.nodes import (
     ExpressionStatement,
     Identifier,
     Literal,
-    Operation
+    Operation,
+    PropertyReference,
+    SubmodelReference,
+    SubmodelElementReference,
+    Reference,
+    ElementReference
 )
+
+class AASResolver:
+
+    def __init__(self, submodels):
+        self.submodels = submodels
+
+
+    def resolve(self, reference):
+
+        current = self.submodels[reference.submodel]
+
+        # unwrap dictionary wrapper
+        if isinstance(current, dict):
+            current = current[reference.submodel]
+
+        for part in reference.path:
+
+            if hasattr(current, "elements"):
+                current = current.elements[part]
+
+            else:
+                raise Exception(
+                    f"Cannot resolve {part}"
+                )
+
+        return current
 
 
 
 class SAFSLTransformer(Transformer):
 
-
-    # =================================================
-    # Process
-    # =================================================
-
-
     def specification(self, items):
-
+    
+        name = str(items[0])
+    
+        submodels = []
+        references = []
+        processes = []
+    
+        for item in items[1:]:
+    
+            if isinstance(item, SubmodelReference):
+                submodels.append(item)
+    
+            elif isinstance(item, ProcessNode):
+                processes.append(item)
+    
+            elif isinstance(item, SubmodelElementReference):
+                references.append(item)
+    
+    
         return Specification(
-            processes=items
+            name=name,
+            submodels=submodels,
+            references=references,
+            processes=processes
         )
 
+    def reference_path(self, items):
+        return [str(x) for x in items]
 
 
     def process(self, items):
@@ -62,6 +110,7 @@ class SAFSLTransformer(Transformer):
 
 
 
+
     def interface_decl(self,items):
 
         terminals=[]
@@ -81,6 +130,7 @@ class SAFSLTransformer(Transformer):
                 predicates.append(item)
 
 
+
         return InterfaceNode(
             terminals=terminals,
             ports=ports,
@@ -95,21 +145,22 @@ class SAFSLTransformer(Transformer):
             direction=str(items[0]),
             name=str(items[1])
         )
+    
+    def port_reference(self, items):
+        return items[0]
 
-
-
-    def port_decl(self,items):
-
-        binding=None
-
-        if len(items)>2:
-            binding=str(items[2])
-
-
+    def port_decl(self, items):
+        
+        reference = None
+        if len(items) == 3:
+            reference = Reference(
+                path=items[2]
+            )
+            
         return PortNode(
             direction=str(items[0]),
             name=str(items[1]),
-            binding=binding
+            reference=reference
         )
 
 
@@ -206,7 +257,6 @@ class SAFSLTransformer(Transformer):
         )
 
 
-
     def IDENTIFIER(self,token):
 
         return str(token)
@@ -227,4 +277,75 @@ class SAFSLTransformer(Transformer):
     
         elif token.type == "STRING":
             return Literal(token[1:-1])   # remove quotes
+
+   
+    def property_decl(self, items):
+        
+        ref_path  = items[1]
     
+        return PropertyReference(
+            idShort=str(items[0]),
+            submodel=ref_path[0],#str("CPrp"),
+            value=str(items[0]),
+            path=ref_path[1:]
+        )
+
+    def relational_expression(self, items):
+    
+        operator = str(items[0])
+    
+        operands = items[1]
+    
+        return Operation(
+            operator=operator,
+            operands=operands
+        )
+
+    def expression_list(self, items):
+        return list(items)
+
+
+    def boolean_expression(self, items):
+    
+        operator = str(items[0])
+    
+        operands = items[1]
+    
+        return Operation(
+            operator=operator,
+            operands=operands
+        )
+
+class QUDTResolver:
+
+    def __init__(self, qudt_model):
+        self.qudt = qudt_model
+
+
+    def resolve_unit(self, semantic_id):
+
+        if semantic_id in self.qudt:
+            return self.qudt[semantic_id]
+
+        return None
+
+class SemanticResolver:
+
+    def resolve(self, reference):
+
+        if not reference.resolved:
+            return
+
+
+        semantic_id = (
+            reference.resolved.semantic_id
+        )
+
+
+        if semantic_id:
+
+            reference.semantic_id = semantic_id
+
+        else:
+
+            reference.semantic_id = None

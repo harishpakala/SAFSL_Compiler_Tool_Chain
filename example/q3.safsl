@@ -1,0 +1,60 @@
+Specification CSTR {
+
+Submodel DEXPI="Q1NUUlByb3A=";
+Submodel CPrp="Q1NUUlByb3A=";
+Property VA2 = DEXPI.ActuatingFunctions.VA_CV_002;
+Property LS1=CPrp.LS1; 
+Property LS2=CPrp.LS2;
+Property LS3=CPrp.LS3;
+Property LS1=CPrp.LS1; 
+Property pHMin=CPrp.pHMin;
+Property pHMax=CPrp.pHMax;
+Property StartCmd=CPrp.Start;
+
+
+
+Process q3 {
+
+    Interface {
+
+        Terminal Input EP4;
+        Terminal Output EP5;
+        Port Input LS1 = LS1;
+		Port Input LS2 = LS2;
+		Port Input LS3 = LS3;
+		
+		
+        Port Input pHMin = LS1;
+		Port Input pHMax = LS2;
+
+		Port Output VA2 = VA2;
+
+        Predicate P1 -> EP5 {
+			 greatES(LS,LS3)
+
+        }
+		Predicate P1 -> EP4 {
+			 greatES(LS,LS3)
+
+        }
+
+    }
+
+
+    Body {
+            IF (orS(greatES(LS, LS3),lessES(LS,LS1)))
+            THEN
+
+                VA2.assignS(False);
+
+            END_IF;
+			IF (notS(orS(lessS(pH,pHMin), greatS(pH,pHMax))))
+            THEN
+
+                VA2.assignS(False);
+
+            END_IF;
+    }
+
+}
+}

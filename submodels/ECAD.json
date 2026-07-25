@@ -1,0 +1,31 @@
+{
+    "idShort": "CPrp",
+    "id": "urn:safsl:CPrp",
+
+    "submodelElements": [
+        {
+            "idShort": "Symbols",
+            "modelType": {
+                "name": "SubmodelElementCollection"
+            },
+            "value" : [
+				{
+				    "idShort": "VA-CV-001",
+				    "modelType": {
+				        "name": "SubmodelElementCollection"
+				    },
+				    "value" : [
+						{
+						    "idShort": "LocalId",
+						    "modelType": {
+						        "name": "Property"
+						    },
+						    "valueType": "xs:double",
+						    "value": "VA_CV_001"
+						},						
+					]
+				}
+			]
+        }
+    ]
+}

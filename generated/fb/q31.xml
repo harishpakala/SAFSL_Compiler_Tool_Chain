@@ -14,9 +14,7 @@
       <VarDeclaration name="pHMin" type="REAL" Value="0.2"/>
       <VarDeclaration name="pHMax" type="REAL" Value="0.6"/>
     </InputVars>
-    <OutputVars>
-      <VarDeclaration name="VA2" type="REAL" Value="0.0" Address="Empty"/>
-    </OutputVars>
+    <OutputVars/>
   </InterfaceList>
   <BasicFB>
     <Algorithm Name="ALG" Type="ST"><![CDATA[IF (LS >= LS3 OR LS <= LS1) THEN

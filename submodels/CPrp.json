@@ -1,0 +1,79 @@
+{
+    "idShort": "CPrp",
+    "id": "urn:safsl:CPrp",
+
+    "submodelElements": [
+        {
+            "idShort": "LS1",
+            "modelType": {
+                "name": "Property"
+            },
+            "valueType": "xs:double",
+            "value": "0.2",
+			"semanticId": {
+			    "keys": [
+			        {
+			            "type": "GlobalReference",
+			            "value": "http://qudt.org/vocab/quantitykind/Volume"
+			        }
+			    ]
+			}
+        },
+		{
+		    "idShort": "LS2",
+		    "modelType": {
+		        "name": "Property"
+		    },
+		    "valueType": "xs:double",
+		    "value": "0.6",
+			"semanticId": {
+			    "keys": [
+			        {
+			            "type": "GlobalReference",
+			            "value": "http://qudt.org/vocab/quantitykind/Volume"
+			        }
+			    ]
+			}
+		},
+		{
+		    "idShort": "LS3",
+		    "modelType": {
+		        "name": "Property"
+		    },
+		    "valueType": "xs:double",
+		    "value": "0.9",
+			"semanticId": {
+			    "keys": [
+			        {
+			            "type": "GlobalReference",
+			            "value": "http://qudt.org/vocab/quantitykind/Volume"
+			        }
+			    ]
+			}
+		},
+		{
+		    "idShort": "pHMin",
+		    "modelType": {
+		        "name": "Property"
+		    },
+		    "valueType": "xs:double",
+		    "value": "6.5"
+		},
+		{
+		    "idShort": "pHMax",
+		    "modelType": {
+		        "name": "Property"
+		    },
+		    "valueType": "xs:double",
+		    "value": "7.5"
+		},
+		{
+		    "idShort": "Start",
+		    "modelType": {
+		        "name": "Property"
+		    },
+		    "valueType": "xs:double",
+		    "value": "Yes"
+		}
+    ]
+}

@@ -1,7 +1,12 @@
 start: specification
 
-specification: process+
+?specification: "Specification" IDENTIFIER "{" submodel_decl* reference_decl* process+ "}"
 
+submodel_decl: "Submodel" IDENTIFIER "=" STRING ";"
+?reference_decl: property_decl | range_decl | smc_decl
+range_decl: "Range" IDENTIFIER "=" IDENTIFIER "." IDENTIFIER ";"
+smc_decl: "SMC" IDENTIFIER "=" IDENTIFIER "." IDENTIFIER ";"
+    
 process: "Process"  IDENTIFIER "{" interface_decl?  body_decl? evolution_decl? "}"
 
 interface_decl: "Interface" "{" terminal_decl* port_decl* predicate_decl* "}"
@@ -11,7 +16,9 @@ evolution_decl: "Evolution" "{"  "}"
 
 terminal_decl: "Terminal" DIRECTION  IDENTIFIER ";"
 port_decl: "Port" DIRECTION IDENTIFIER port_reference? ";"
-port_reference: "=" IDENTIFIER
+port_reference: "=" reference_path
+property_decl: "Property" IDENTIFIER "=" reference_path ";"
+reference_path: IDENTIFIER ("." IDENTIFIER)*
 DIRECTION : INPUT | OUTPUT
 INPUT: "Input"
 OUTPUT: "Output"

@@ -4,16 +4,15 @@ Created on Jul 25, 2026
 @author: haris
 '''
 
-from lxml.etree import Element, SubElement, tostring
+from lxml.etree import Element, SubElement
 from lxml import etree
 
-from safsl_ast.nodes import AssignmentNode, IfNode, Identifier, Literal
+from safsl_ast.nodes import AssignmentNode, IfNode, Identifier, Literal, Operation
 
 
 algorithm = []
 
-
-def generate_fb_xml(Safslprocess):
+def generate_fb_xml(Safslprocess,reference_table):
 
     root = Element( "FunctionBlock", { "name": "fb"})
 
@@ -96,25 +95,104 @@ def generate_fb_xml(Safslprocess):
 
     for port in Safslprocess.interface.ports:
     
-            if port.direction == "Input":
-                SubElement(
-                    InputVars,
-                    "VarDeclaration",
-                    {
-                        "name": port.name,
-                        "type" : "REAL"
-                    }
-                )
+        if port.direction == "Input":
     
-            elif port.direction == "Output":
-                SubElement(
-                    OutputVars,
-                    "VarDeclaration",
-                    {
-                        "name": port.name,
-                        "type":  "REAL"
-                    }
-                )
+            value = None
+            address = None
+    
+            if port.reference:
+    
+                reference = reference_table[
+                    port.reference.path[0]
+                ]
+    
+                resolved = reference.resolved
+
+                if reference.submodel == "CPrp":
+    
+                    if reference.element_type == "Property":
+                        value = reference.resolved.value
+    
+                    elif reference.element_type == "Range":
+                        value = f"{reference.min}:{reference.max}"
+    
+                    elif reference.submodel == "DEXPI":
+                    
+                        if resolved.element_type == "SubmodelElementCollection":
+                    
+                            value = "0.0"
+                            address = "Empty"
+    
+    
+                else:
+                    raise Exception(
+                        f"Unsupported submodel {reference.submodel}"
+                    )
+    
+    
+            attributes = {
+                "name": port.name,
+                "type": "REAL",
+                "Value": value
+            }
+    
+            if address:
+                attributes["Address"] = address
+    
+    
+            SubElement(
+                InputVars,
+                "VarDeclaration",
+                attributes
+            )
+    
+    
+        elif port.direction == "Output":
+        
+            value = None
+            address = None
+        
+            if port.reference:
+        
+                reference = reference_table[
+                    port.reference.path[0]
+                ]
+        
+                if reference.submodel == "CPrp":
+        
+                    if reference.element_type == "Property":
+                        value = reference.value
+        
+                    elif reference.element_type == "Range":
+                        value = f"{reference.min}:{reference.max}"
+        
+        
+                elif reference.submodel == "DEXPI":
+        
+                    # DEXPI equipment/function reference
+                    value = "0.0"
+                    address = "Empty"
+        
+        
+            attributes = {
+                "name": port.name,
+                "type": "REAL"
+            }
+        
+            if value is not None:
+                attributes["Value"] = value
+        
+            if address is not None:
+                attributes["Address"] = address
+        
+        
+            SubElement(
+                OutputVars,
+                "VarDeclaration",
+                attributes
+            )
+
+
              
     
     for statement in Safslprocess.body.statements:
@@ -146,7 +224,8 @@ def generate_assignment(statement):
         )
 
 def generate_if(statement):
-
+    
+    test = "Hello"
     condition = generate_expression(statement.children[0].condition)
 
     algorithm.append(f"IF {condition} THEN")
@@ -165,19 +244,102 @@ def generate_statement(statement):
         generate_if(statement)
 
 
+def is_dexpi_signal(reference):
+
+    return (
+        reference.submodel == "DEXPI"
+        and (
+            reference.idShort.startswith("PIF_")
+            or reference.idShort.startswith("AIF_")
+        )
+    )
+
+
+def create_input_variable(port, reference):
+
+    attributes = {
+        "name": port.name,
+        "type": "REAL"
+    }
+
+
+    if reference.submodel == "DEXPI":
+
+        if is_dexpi_signal(reference):
+
+            attributes["Value"] = "0.0"
+            attributes["Address"] = "Empty"
+
+        else:
+            raise Exception(
+                f"Unsupported DEXPI reference {reference.idShort}"
+            )
+
+
+    else:
+
+        attributes["Value"] = reference.value
+
+    return attributes
+
+
 def generate_expression(expr):
 
     if isinstance(expr, Literal):
-    
+
         if isinstance(expr.value, bool):
             return "TRUE" if expr.value else "FALSE"
-        
-        elif isinstance(expr, Literal):
-            if isinstance(expr.value, bool):
-                return "TRUE" if expr.value else "FALSE"
-            return str(expr.value)
 
-    else:
         return str(expr.value)
+
+
+    elif isinstance(expr, Identifier):
+
+        return expr.name
+
+
+    elif isinstance(expr, Operation):
+
+        if expr.operator == "lessES":
+            return (
+                f"{generate_expression(expr.operands[0])} <= "
+                f"{generate_expression(expr.operands[1])}"
+            )
+
+        elif expr.operator == "greatES":
+            return (
+                f"{generate_expression(expr.operands[0])} >= "
+                f"{generate_expression(expr.operands[1])}"
+            )
+
+        elif expr.operator == "lessS":
+            return (
+                f"{generate_expression(expr.operands[0])} < "
+                f"{generate_expression(expr.operands[1])}"
+            )
+
+        elif expr.operator == "greatS":
+            return (
+                f"{generate_expression(expr.operands[0])} > "
+                f"{generate_expression(expr.operands[1])}"
+            )
+            
+
+        elif expr.operator == "orS":
+            return (
+                f"({generate_expression(expr.operands[0])} OR "
+                f"{generate_expression(expr.operands[1])})"
+            )
+
+        elif expr.operator == "notS":
+            operand = expr.operands
+        
+            if isinstance(operand, list):
+                operand = operand[0]
+        
+            return f"NOT ({generate_expression(operand)})"
+
+    raise Exception(f"Unknown expression type: {expr}")
+
 
 

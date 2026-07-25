@@ -1,0 +1,111 @@
+{
+    "idShort": "DEXPI",
+    "id": "urn:safsl:DEXPI",
+
+    "submodelElements": [
+ 	 {
+		"idShort": "ActuatingFunctions",
+		"modelType": {
+		    "name": "SubmodelElementCollection"
+		},
+		"value": [
+			 {
+				"idShort": "VA_CV_001",
+				"modelType": {
+				    "name": "SubmodelElementCollection"
+				},
+				"value": [
+					{
+					    "idShort": "LocalId",
+					    "modelType": {
+					        "name": "Property"
+					    },
+					    "valueType": "xs:double",
+					    "value": "VA_CV_001"
+					},
+					{
+					    "idShort": "AssetIdentifier",
+					    "modelType": {
+					        "name": "Property"
+					    },
+					    "valueType": "xs:double",
+					    "value": "example.org/VA-CV-001"
+					}
+				]
+			},
+			{
+							"idShort": "VA_CV_002",
+							"modelType": {
+							    "name": "SubmodelElementCollection"
+							},
+							"value": [
+								{
+								    "idShort": "LocalId",
+								    "modelType": {
+								        "name": "Property"
+								    },
+								    "valueType": "xs:double",
+								    "value": "VA_CV_002"
+								},
+								{
+								    "idShort": "AssetIdentifier",
+								    "modelType": {
+								        "name": "Property"
+								    },
+								    "valueType": "xs:double",
+								    "value": "example.org/VA-CV-002"
+								}
+							]
+						},
+						{
+										"idShort": "VA_CV_003",
+										"modelType": {
+										    "name": "SubmodelElementCollection"
+										},
+										"value": [
+											{
+											    "idShort": "LocalId",
+											    "modelType": {
+											        "name": "Property"
+											    },
+											    "valueType": "xs:double",
+											    "value": "VA_CV_003"
+											},
+											{
+											    "idShort": "AssetIdentifier",
+											    "modelType": {
+											        "name": "Property"
+											    },
+											    "valueType": "xs:double",
+											    "value": "example.org/VA-CV-003"
+											}
+										]
+									},	
+									{
+													"idShort": "VA_CV_004",
+													"modelType": {
+													    "name": "SubmodelElementCollection"
+													},
+													"value": [
+														{
+														    "idShort": "LocalId",
+														    "modelType": {
+														        "name": "Property"
+														    },
+														    "valueType": "xs:double",
+														    "value": "VA_CV_004"
+														},
+														{
+														    "idShort": "AssetIdentifier",
+														    "modelType": {
+														        "name": "Property"
+														    },
+														    "valueType": "xs:double",
+														    "value": "example.org/VA-CV-004"
+														}
+													]
+												}								
+		]
+	 }
+    ]
+}

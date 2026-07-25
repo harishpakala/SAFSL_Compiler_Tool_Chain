@@ -5,11 +5,7 @@ Created on Jul 25, 2026
 '''
 from dataclasses import dataclass, field
 from typing import List, Optional, Any
-
-
-# =====================================================
-# Base classes
-# =====================================================
+from typing import Dict
 
 class ASTNode:
     pass
@@ -23,13 +19,13 @@ class Expression(ASTNode):
     pass
 
 
-# =====================================================
-# Process level
-# =====================================================
-
 @dataclass
 class Specification(ASTNode):
-    processes: List["ProcessNode"]
+    name: str
+    submodels: List["SubmodelReference"] = field(default_factory=list)
+    references: List["SubmodelElementReference"] = field(default_factory=list)
+    processes: List["ProcessNode"] = field(default_factory=list)
+
 
 
 @dataclass
@@ -59,12 +55,11 @@ class TerminalNode(ASTNode):
 
 @dataclass
 class PortNode(ASTNode):
-
     direction: str
     name: str
     binding: Optional[str] = None
-
-
+    reference: Optional["Reference"] = None
+    
 
 @dataclass
 class PredicateNode(ASTNode):
@@ -86,8 +81,14 @@ class AssignmentNode(Statement):
     operator: str
     value: Expression
 
+@dataclass
+class Reference:
+    path: list[str]
 
-
+@dataclass
+class ElementReference:
+    path: list[str]
+    resolved: Optional[object] = None
 
 @dataclass
 class ExpressionStatement(Statement):
@@ -96,10 +97,7 @@ class ExpressionStatement(Statement):
 
 @dataclass
 class Identifier(Expression):
-
     name: str
-
-
 
 @dataclass
 class Literal(Expression):
@@ -163,3 +161,87 @@ class ArithmeticExpressionNode(Expression):
     operator: str
     operands: List[Expression]
 
+
+@dataclass
+class SubmodelElementReference:
+    idShort: str
+    submodel: str
+    path: list[str]
+    element_type: str
+    resolved: object = None
+    semantic_id: str = None
+
+
+@dataclass
+class RangeReference(SubmodelElementReference):
+    min: str = None
+    max: str = None
+
+    def __init__(
+        self,
+        idShort: str,
+        submodel: str,
+        path: list[str],
+        min: str = None,
+        max: str = None
+    ):
+        super().__init__(
+            idShort=idShort,
+            submodel=submodel,
+            path=path,
+            element_type="Range"
+        )
+        self.min = min
+        self.max = max
+
+@dataclass
+class PropertyReference(SubmodelElementReference):
+
+    value: str = None
+
+    def __init__(
+        self,
+        idShort: str,
+        submodel: str,
+        path: list[str],
+        value: str = None,
+        semantic_id: str = None
+    ):
+        super().__init__(
+            idShort=idShort,
+            submodel=submodel,
+            path=path,
+            element_type="Property",
+            semantic_id=semantic_id
+        )
+        self.value = value
+
+@dataclass
+class SMCReference(SubmodelElementReference):
+
+    elements: dict = field(default_factory=dict)
+
+    def __init__(
+        self,
+        idShort: str,
+        submodel: str,
+        path: list,
+        elements=None
+    ):
+
+        super().__init__(
+            idShort=idShort,
+            submodel=submodel,
+            path=path,
+            element_type="SubmodelElementCollection"
+        )
+
+        self.elements = elements or {}
+
+
+
+@dataclass
+class SubmodelReference:
+    name: str
+    identifier: str
+    elements: Dict[str, "SubmodelElementReference"] = field(default_factory=dict)
