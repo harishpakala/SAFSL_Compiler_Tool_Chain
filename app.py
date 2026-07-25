@@ -17,7 +17,7 @@ GRAMMAR_PATH = (
     Path(__file__)
     .parent
     .parent
-    / "Springer_Journal\\grammar"
+    / "SAFSL_Compiler_Tool_Chain\\grammar"
     / "process1.lark"
 )
 
@@ -25,7 +25,7 @@ GENERATED_FB_PATH = (
     Path(__file__)
     .parent
     .parent
-    / "Springer_Journal\\generated\\fb"
+    / "SAFSL_Compiler_Tool_Chain\\generated\\fb"
 )
 FilePATH = (
     Path(__file__)

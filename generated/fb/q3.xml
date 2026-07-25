@@ -17,13 +17,17 @@
     </InputVars>
     <OutputVars>
       <VarDeclaration name="VA2" type="REAL" Value="0.0" Address="Empty"/>
+      <VarDeclaration name="VA3" type="REAL" Value="0.0" Address="Empty"/>
+      <VarDeclaration name="VA4" type="REAL" Value="0.0" Address="Empty"/>
     </OutputVars>
   </InterfaceList>
   <BasicFB>
     <Algorithm Name="ALG" Type="ST"><![CDATA[IF (LS >= LS3 OR LS <= LS1) THEN
+VA4 := TRUE;
 VA2 := FALSE;
 END_IF;
 IF NOT ((pH < pHMin OR pH > pHMax)) THEN
+VA3 := TRUE;
 VA2 := FALSE;
 END_IF;]]></Algorithm>
   </BasicFB>

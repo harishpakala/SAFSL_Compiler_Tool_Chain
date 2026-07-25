@@ -3,6 +3,8 @@ Specification CSTR {
 Submodel DEXPI="Q1NUUlByb3A=";
 Submodel CPrp="Q1NUUlByb3A=";
 Property VA2 = DEXPI.ActuatingFunctions.VA_CV_002;
+Property VA3 = DEXPI.ActuatingFunctions.VA_CV_003;
+Property VA4 = DEXPI.ActuatingFunctions.VA_CV_004;
 Property LS1=CPrp.LS1; 
 Property LS2=CPrp.LS2;
 Property LS3=CPrp.LS3;
@@ -29,6 +31,8 @@ Process q3 {
 		Port Input pHMax = LS2;
 
 		Port Output VA2 = VA2;
+		Port Output VA3 = VA3;
+		Port Output VA4 = VA4;
 
 		Predicate P4 -> EP5 {
 			orS(lessES(LS, LS2), 
@@ -44,13 +48,13 @@ Process q3 {
     Body {
             IF (orS(greatES(LS, LS3),lessES(LS,LS1)))
             THEN
-
+				VA4.assignS(True);
                 VA2.assignS(False);
 
             END_IF;
 			IF (notS(orS(lessS(pH,pHMin), greatS(pH,pHMax))))
             THEN
-
+				VA3.assignS(True);
                 VA2.assignS(False);
 
             END_IF;
