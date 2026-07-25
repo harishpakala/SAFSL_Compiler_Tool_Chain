@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='utf-8'?>
+<FunctionBlock name="fb">
+  <InterfaceList>
+    <EventInputs>
+      <Event name="EP4"/>
+    </EventInputs>
+    <EventOutputs>
+      <Event name="EP5"/>
+    </EventOutputs>
+    <InputVars>
+      <VarDeclaration name="LS" type="REAL"/>
+    </InputVars>
+    <OutputVars/>
+  </InterfaceList>
+  <BasicFB>
+    <Algorithm Name="ALG" Type="ST"><![CDATA[IF TRUE THEN
+VA2 := FALSE;
+END_IF;]]></Algorithm>
+  </BasicFB>
+  <ECC>
+    <ECState name="START" Initial="true"/>
+    <ECState name="BODY">
+      <ECAction Algorithm="ALG"/>
+    </ECState>
+    <ECTransition Source="START" Destination="BODY">
+      <ECEventCondition Event="EP4"/>
+    </ECTransition>
+    <ECTransition Source="BODY" Destination="EP5_STATE"/>
+    <ECState Name="EP5_STATE">
+      <ECAction Output="EP5"/>
+    </ECState>
+  </ECC>
+</FunctionBlock>

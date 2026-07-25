@@ -1,0 +1,106 @@
+start: specification
+
+specification: process+
+
+process: "Process"  IDENTIFIER "{" interface_decl?  body_decl? evolution_decl? "}"
+
+interface_decl: "Interface" "{" terminal_decl* port_decl* predicate_decl* "}"
+body_decl: "Body" "{" statement* "}"
+evolution_decl: "Evolution" "{"  "}"
+
+
+terminal_decl: "Terminal" DIRECTION  IDENTIFIER ";"
+port_decl: "Port" DIRECTION IDENTIFIER port_reference? ";"
+port_reference: "=" IDENTIFIER
+DIRECTION : INPUT | OUTPUT
+INPUT: "Input"
+OUTPUT: "Output"
+predicate_decl: "Predicate" IDENTIFIER  "->" IDENTIFIER "{" expression "}"
+
+?expression: boolean_expression | arithmetic_expression | literal | qualified_identifier | relational_expression
+?boolean_expression: BOOLEAN_OPERATOR "(" expression_list ")" |  UNARY_BOOLEAN_OPERATOR "(" expression ")"
+relational_expression: RELATIONAL_OPERATOR "(" expression_list ")"
+arithmetic_expression: ARITHMETIC_OPERATOR "(" expression_list ")"
+
+
+qualified_identifier: IDENTIFIER ("." IDENTIFIER)*
+literal: NUMBER | STRING | BOOLEAN
+qualified_literal: NUMBER "@" IDENTIFIER ":" IDENTIFIER
+
+statement:declaration | assignment_stmt | field_assignment | expression_stmt | if_stmt | foreach_stmt
+
+declaration: ELEMENT_TYPE IDENTIFIER"="constructor";" | ELEMENT_TYPE IDENTIFIER "=" qualified_identifier ";"
+
+constructor: property_constructor | range_constructor | smc_constructor | submodel_constructor
+property_constructor: "new" "Property" "(" STRING ")" | "new" "Property" "(" STRING "," semantic_ref "," expression ")"
+range_constructor: "new" "Range" "(" STRING ")" | "new" "Range" "(" STRING "," semantic_ref "," expression "," expression ")"
+smc_constructor: "new" "SMC" IDENTIFIER? "{" element_list? "}"
+submodel_constructor: "new" "Submodel" IDENTIFIER? "{" element_list? "}"
+semantic_ref: IDENTIFIER ":" IDENTIFIER
+
+expression_list: expression ("," expression)*
+element_list: expression ("," expression)*
+assignment_stmt: IDENTIFIER "." ASSIGNMENT_OPERATOR "(" expression ")" ";"
+
+field_assignment: qualified_identifier "=" expression";"
+
+
+
+expression_stmt: expression ";"
+
+if_stmt: "IF" "(" expression ")" "THEN" statement*"END_IF"";"
+foreach_stmt: "FOREACH" "(" IDENTIFIER "IN" expression ")" "DO" statement* "END_FOREACH" ";"
+
+   
+
+UNARY_BOOLEAN_OPERATOR.10: NOT | NOTS
+BOOLEAN_OPERATOR.10: AND | ANDS | OR | ORS
+ARITHMETIC_OPERATOR.10: ADD | ADDS | SUB | SUBS | MUL | MULS | DIV | DIVS
+RELATIONAL_OPERATOR.10:  EQUAL | EQUALS | LESS | LESSS | LESSE | LESSES | GREAT | GREATS | GREATE | GREATES
+ELEMENT_TYPE.10: PROPERTY | RANGE | SMC | SUBMODEL
+
+NOT: "not"
+NOTS: "notS"
+AND: "and"
+ANDS: "andS"
+OR: "or"
+ORS: "orS"
+ADD: "add"
+ADDS: "addS"
+SUB: "sub"
+SUBS: "subS"
+MUL: "mul"
+MULS: "mulS"
+DIV: "div"
+DIVS: "divS"
+EQUAL: "equal"
+EQUALS: "equalS"
+LESS: "less"
+LESSS: "lessS"
+LESSE: "lessE"
+LESSES: "lessES"
+GREAT: "great"
+GREATS: "greatS"
+GREATE: "greatE"
+GREATES: "greatES"
+ASSIGNMENT_OPERATOR.10: ASSIGN | ASSIGNS
+ASSIGN: "assign"
+ASSIGNS: "assignS"
+PROPERTY: "Property"
+RANGE: "Range"
+SMC: "SMC"
+SUBMODEL: "Submodel"
+
+
+BOOLEAN.10: "True" | "False"
+IDENTIFIER: /[A-Za-z_][A-Za-z0-9_]*/
+
+
+%import common.SIGNED_NUMBER -> NUMBER
+%import common.ESCAPED_STRING -> STRING
+%import common.WS
+
+%ignore WS
+
+%ignore /\/\/[^\r\n]*/
+%ignore /\/\*(.|\n)*?\*\//
