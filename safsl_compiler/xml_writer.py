@@ -14,7 +14,7 @@ algorithm = []
 
 def generate_fb_xml(Safslprocess,reference_table):
 
-    root = Element( "FunctionBlock", { "name": "fb"})
+    root = Element( "FBType", { "name": Safslprocess.name})
 
     interface = SubElement(root, "InterfaceList")
 
