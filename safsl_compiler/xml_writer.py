@@ -37,6 +37,7 @@ def generate_fb_xml(Safslprocess,reference_table):
     for terminal in Safslprocess.interface.terminals:
 
         if terminal.direction == "Input":
+        
             SubElement(
                 EventInputs,
                 "Event",
@@ -44,24 +45,38 @@ def generate_fb_xml(Safslprocess,reference_table):
                     "name": terminal.name
                 }
             )
+        
             transition = SubElement(
-                    ECC,
-                    "ECTransition",
-                    {
-                        "Source": "START",
-                        "Destination" : "BODY"
-                    }
-                )
-            
+                ECC,
+                "ECTransition",
+                {
+                    "Source": "START",
+                    "Destination": "BODY"
+                }
+            )
+        
             SubElement(
-                    transition,
-                    "ECEventCondition",
-                    {
-                        "Event": terminal.name
-                    }
-                )
-            
+                transition,
+                "ECEventCondition",
+                {
+                    "Event": terminal.name
+                }
+            )
+        
+            for predicate in Safslprocess.interface.predicates:
+        
+                if predicate.terminal == terminal.name:
+        
+                    SubElement(
+                        transition,
+                        "ECCondition"
+                    ).text = generate_expression(
+                        predicate.condition
+                    )
+        
+                             
         elif terminal.direction == "Output":
+        
             SubElement(
                 EventOutputs,
                 "Event",
@@ -69,29 +84,42 @@ def generate_fb_xml(Safslprocess,reference_table):
                     "name": terminal.name
                 }
             )
-            SubElement(
-                    ECC,
-                    "ECTransition",
-                    {
-                        "Source": "BODY",
-                        "Destination" : terminal.name + "_STATE"
-                    }
-                )
+        
+            transition = SubElement(
+                ECC,
+                "ECTransition",
+                {
+                    "Source": "BODY",
+                    "Destination": terminal.name + "_STATE"
+                }
+            )
+        
+            for predicate in Safslprocess.interface.predicates:
+        
+                if predicate.terminal == terminal.name:
+        
+                    SubElement(
+                        transition,
+                        "ECCondition"
+                    ).text = generate_expression(
+                        predicate.condition
+                    )
+        
             Terminal_State = SubElement(
-                    ECC,
-                    "ECState",
-                    {
-                        "Name": terminal.name + "_STATE"
-                    }
-                )
+                ECC,
+                "ECState",
+                {
+                    "Name": terminal.name + "_STATE"
+                }
+            )
+        
             SubElement(
-                    Terminal_State,
-                    "ECAction",
-                    {
-                        "Output": terminal.name
-                    }
-                )
-                
+                Terminal_State,
+                "ECAction",
+                {
+                    "Output": terminal.name
+                }
+            )
 
     for port in Safslprocess.interface.ports:
     

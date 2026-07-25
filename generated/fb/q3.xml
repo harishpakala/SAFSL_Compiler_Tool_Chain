@@ -6,6 +6,7 @@
     </EventInputs>
     <EventOutputs>
       <Event name="EP5"/>
+      <Event name="EP6"/>
     </EventOutputs>
     <InputVars>
       <VarDeclaration name="LS1" type="REAL" Value="0.2"/>
@@ -34,9 +35,17 @@ END_IF;]]></Algorithm>
     <ECTransition Source="START" Destination="BODY">
       <ECEventCondition Event="EP4"/>
     </ECTransition>
-    <ECTransition Source="BODY" Destination="EP5_STATE"/>
+    <ECTransition Source="BODY" Destination="EP5_STATE">
+      <ECCondition>(LS &lt;= LS2 OR LS &gt;= LS3)</ECCondition>
+    </ECTransition>
     <ECState Name="EP5_STATE">
       <ECAction Output="EP5"/>
+    </ECState>
+    <ECTransition Source="BODY" Destination="EP6_STATE">
+      <ECCondition>NOT ((pH &lt; pHMin OR pH &gt; pHMax))</ECCondition>
+    </ECTransition>
+    <ECState Name="EP6_STATE">
+      <ECAction Output="EP6"/>
     </ECState>
   </ECC>
 </FunctionBlock>

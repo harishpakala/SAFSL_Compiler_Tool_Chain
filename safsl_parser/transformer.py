@@ -108,9 +108,6 @@ class SAFSLTransformer(Transformer):
             evolution=evolution
         )
 
-
-
-
     def interface_decl(self,items):
 
         terminals=[]

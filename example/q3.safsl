@@ -19,6 +19,7 @@ Process q3 {
 
         Terminal Input EP4;
         Terminal Output EP5;
+        Terminal Output EP6;
         Port Input LS1 = LS1;
 		Port Input LS2 = LS2;
 		Port Input LS3 = LS3;
@@ -29,14 +30,13 @@ Process q3 {
 
 		Port Output VA2 = VA2;
 
-        Predicate P1 -> EP5 {
-			 greatES(LS,LS3)
-
-        }
-		Predicate P1 -> EP4 {
-			 greatES(LS,LS3)
-
-        }
+		Predicate P4 -> EP5 {
+			orS(lessES(LS, LS2), 
+		greatES(LS, LS3))
+			}
+		Predicate P5 -> EP6 {
+		notS(orS(lessS(pH, pHMin), greatS(pH, pHMax)))
+		}
 
     }
 
