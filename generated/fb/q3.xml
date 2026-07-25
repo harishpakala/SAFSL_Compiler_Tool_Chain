@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<FunctionBlock name="fb">
+<FBType name="q3">
   <InterfaceList>
     <EventInputs>
       <Event name="EP4"/>
@@ -48,4 +48,4 @@ END_IF;]]></Algorithm>
       <ECAction Output="EP6"/>
     </ECState>
   </ECC>
-</FunctionBlock>
+</FBType>
