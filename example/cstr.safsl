@@ -40,8 +40,8 @@ Process q3 {
 		Predicate P5 -> EP6 {
 		notS(orS(lessS(pH, pHMin), greatS(pH, pHMax)))
 		}
-		Property p1 = new Property("p1","QUDT:K","2");
-		Property p2 = new Property("p2","QUDT:K","10");
+		Property p1 = new Property("xs:decimal","QUDT:K","2");
+		Property p2 = new Property("xs:decimal","QUDT:K","10");
     }
 
 

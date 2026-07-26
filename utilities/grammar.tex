@@ -1,0 +1,207 @@
+\begingroup
+\renewcommand{\arraystretch}{0.92}
+\setlength{\tabcolsep}{4pt}
+\begin{longtable}{
+>{\ttfamily\small}p{0.28\textwidth}
+>{\raggedright\arraybackslash\small}p{0.66\textwidth}
+}
+\caption{Grammar}
+\label{tab:grammar}\\
+\toprule
+\textbf{Nonterminal} & \textbf{Production Rule}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Nonterminal} & \textbf{Production Rule}\\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+start & ::= specification\\
+
+?specification & ::= \texttt{Specification} IDENTIFIER \texttt{\{} submodel_decl$^{*}$ reference_decl$^{*}$ process$^{+}$ \texttt{\}}\\
+
+submodel\_decl & ::= \texttt{Submodel} IDENTIFIER \texttt{=} STRING \texttt{;}\\
+
+?reference\_decl & ::= property_decl\\
+& \textbar{} range_decl\\
+& \textbar{} smc_decl\\
+
+property\_decl & ::= \texttt{Property} IDENTIFIER \texttt{=} reference_path \texttt{;}\\
+
+range\_decl & ::= \texttt{Range} IDENTIFIER \texttt{=} IDENTIFIER \texttt{.} IDENTIFIER \texttt{;}\\
+
+smc\_decl & ::= \texttt{SMC} IDENTIFIER \texttt{=} IDENTIFIER \texttt{.} IDENTIFIER \texttt{;}\\
+
+process & ::= \texttt{Process}  IDENTIFIER \texttt{\{} interface_decl$^{?}$  body_decl$^{?}$ evolution_decl$^{?}$ \texttt{\}}\\
+
+interface\_decl & ::= \texttt{Interface} \texttt{\{} terminal_decl$^{*}$ port_decl$^{*}$ predicate_decl$^{*}$ property_declaration$^{*}$ range_declaration$^{*}$ \texttt{\}}\\
+
+body\_decl & ::= \texttt{Body} \texttt{\{} statement$^{*}$ \texttt{\}}\\
+
+evolution\_decl & ::= \texttt{Evolution} \texttt{\{}  \texttt{\}}\\
+
+terminal\_decl & ::= \texttt{Terminal} DIRECTION  IDENTIFIER \texttt{;}\\
+
+port\_decl & ::= \texttt{Port} DIRECTION IDENTIFIER port_reference$^{?}$ \texttt{;}\\
+
+port\_reference & ::= \texttt{=} reference_path\\
+
+reference\_path & ::= IDENTIFIER (\texttt{.} IDENTIFIER)$^{*}$\\
+
+DIRECTION & ::= INPUT\\
+& \textbar{} OUTPUT\\
+
+INPUT & ::= \texttt{Input}\\
+
+OUTPUT & ::= \texttt{Output}\\
+
+predicate\_decl & ::= \texttt{Predicate} IDENTIFIER  \texttt{->} IDENTIFIER \texttt{\{} expression \texttt{\}}\\
+
+?expression & ::= boolean_expression\\
+& \textbar{} arithmetic_expression\\
+& \textbar{} literal\\
+& \textbar{} qualified_identifier\\
+& \textbar{} relational_expression\\
+& \textbar{} assignment_stmt\\
+
+?boolean\_expression & ::= BOOLEAN_OPERATOR \texttt{(} expression_list \texttt{)}\\
+& \textbar{} UNARY_BOOLEAN_OPERATOR \texttt{(} expression \texttt{)}\\
+
+relational\_expression & ::= RELATIONAL_OPERATOR \texttt{(} expression_list \texttt{)}\\
+
+arithmetic\_expression & ::= ARITHMETIC_OPERATOR \texttt{(} expression_list \texttt{)}\\
+
+assignment\_stmt & ::= ASSIGNMENT_OPERATOR \texttt{(} expression_list \texttt{)}\\
+
+qualified\_identifier & ::= IDENTIFIER (\texttt{.} IDENTIFIER)$^{*}$\\
+
+literal & ::= NUMBER\\
+& \textbar{} STRING\\
+& \textbar{} BOOLEAN\\
+
+qualified\_literal & ::= NUMBER \texttt{@} IDENTIFIER \texttt{:} IDENTIFIER\\
+
+statement & ::= expression_stmt\\
+& \textbar{} if_stmt\\
+& \textbar{} foreach_stmt\\
+
+property\_declaration & ::= \texttt{Property} IDENTIFIER \texttt{= }  \texttt{new} \texttt{Property} \texttt{(} STRING \texttt{,} STRING \texttt{,} STRING \texttt{)} \texttt{;}\\
+
+range\_declaration & ::= \texttt{Range} IDENTIFIER \texttt{= }  \texttt{new} \texttt{Range} \texttt{(} STRING \texttt{,} STRING \texttt{,} STRING \texttt{)} \texttt{;}\\
+
+semantic\_ref & ::= IDENTIFIER \texttt{:} IDENTIFIER\\
+
+expression\_list & ::= expression (\texttt{,} expression)$^{*}$\\
+
+element\_list & ::= expression (\texttt{,} expression)$^{*}$\\
+
+expression\_stmt & ::= expression \texttt{;}\\
+
+if\_stmt & ::= \texttt{IF} \texttt{(} expression \texttt{)} \texttt{THEN} statement$^{*}$\texttt{END\_IF}\texttt{;}\\
+
+foreach\_stmt & ::= \texttt{FOREACH} \texttt{(} IDENTIFIER \texttt{IN} expression \texttt{)} \texttt{DO} statement$^{*}$ \texttt{END\_FOREACH} \texttt{;}\\
+
+UNARY\_BOOLEAN\_OPERATOR.10 & ::= NOT\\
+& \textbar{} NOTS\\
+
+BOOLEAN\_OPERATOR.10 & ::= AND\\
+& \textbar{} ANDS\\
+& \textbar{} OR\\
+& \textbar{} ORS\\
+
+ARITHMETIC\_OPERATOR.10 & ::= ADD\\
+& \textbar{} ADDS\\
+& \textbar{} SUB\\
+& \textbar{} SUBS\\
+& \textbar{} MUL\\
+& \textbar{} MULS\\
+& \textbar{} DIV\\
+& \textbar{} DIVS\\
+
+RELATIONAL\_OPERATOR.10 & ::= EQUAL\\
+& \textbar{} EQUALS\\
+& \textbar{} LESS\\
+& \textbar{} LESSS\\
+& \textbar{} LESSE\\
+& \textbar{} LESSES\\
+& \textbar{} GREAT\\
+& \textbar{} GREATS\\
+& \textbar{} GREATE\\
+& \textbar{} GREATES\\
+
+ELEMENT\_TYPE.10 & ::= PROPERTY\\
+& \textbar{} RANGE\\
+& \textbar{} SMC\\
+& \textbar{} SUBMODEL\\
+
+NOT & ::= \texttt{not}\\
+
+NOTS & ::= \texttt{notS}\\
+
+AND & ::= \texttt{and}\\
+
+ANDS & ::= \texttt{andS}\\
+
+OR & ::= \texttt{or}\\
+
+ORS & ::= \texttt{orS}\\
+
+ADD & ::= \texttt{add}\\
+
+ADDS & ::= \texttt{addS}\\
+
+SUB & ::= \texttt{sub}\\
+
+SUBS & ::= \texttt{subS}\\
+
+MUL & ::= \texttt{mul}\\
+
+MULS & ::= \texttt{mulS}\\
+
+DIV & ::= \texttt{div}\\
+
+DIVS & ::= \texttt{divS}\\
+
+EQUAL & ::= \texttt{equal}\\
+
+EQUALS & ::= \texttt{equalS}\\
+
+LESS & ::= \texttt{less}\\
+
+LESSS & ::= \texttt{lessS}\\
+
+LESSE & ::= \texttt{lessE}\\
+
+LESSES & ::= \texttt{lessES}\\
+
+GREAT & ::= \texttt{great}\\
+
+GREATS & ::= \texttt{greatS}\\
+
+GREATE & ::= \texttt{greatE}\\
+
+GREATES & ::= \texttt{greatES}\\
+
+ASSIGNMENT\_OPERATOR.10 & ::= ASSIGN\\
+& \textbar{} ASSIGNS\\
+
+ASSIGN & ::= \texttt{assign}\\
+
+ASSIGNS & ::= \texttt{assignS}\\
+
+PROPERTY & ::= \texttt{Property}\\
+
+RANGE & ::= \texttt{Range}\\
+
+SMC & ::= \texttt{SMC}\\
+
+SUBMODEL & ::= \texttt{Submodel}\\
+
+BOOLEAN.10 & ::= \texttt{True}\\
+& \textbar{} \texttt{False}\\
+
+IDENTIFIER & ::= /[A-Za-z_][A-Za-z0-9_]$^{*}$/\\
+
+\end{longtable}
+\endgroup
