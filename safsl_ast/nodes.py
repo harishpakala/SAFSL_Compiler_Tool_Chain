@@ -34,16 +34,31 @@ class ProcessNode(ASTNode):
     interface: ["InterfaceNode" ] = None
     body: Optional["BodyNode"] = None
     evolution: Optional["EvolutionNode"] = None
+    decleration: Optional["DeclerationNode"] = None
 
 
 @dataclass
 class InterfaceNode(ASTNode):
 
     terminals: List["TerminalNode"] = field(default_factory=list)
-
     ports: List["PortNode"] = field(default_factory=list)
-
     predicates: List["PredicateNode"] = field(default_factory=list)
+    properties : List["PropertyNode"] = field(default_factory=list)
+    ranges : List["RangeNode"] = field(default_factory=list)
+    
+    
+@dataclass
+class PropertyNode(ASTNode):
+    name: str
+    value: str
+    semanticId: str
+
+@dataclass
+class RangeNode(ASTNode):
+    name: str
+    min: str
+    max: str
+    semanticId: str
 
 @dataclass
 class TerminalNode(ASTNode):
@@ -76,7 +91,6 @@ class BodyNode(ASTNode):
 
 @dataclass
 class AssignmentNode(Statement):
-
     target: str
     operator: str
     value: Expression

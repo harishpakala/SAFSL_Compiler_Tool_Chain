@@ -22,6 +22,10 @@
     </OutputVars>
   </InterfaceList>
   <BasicFB>
+    <InternalVars>
+      <VarDeclaration name="p1" type="STRING" initialvalue="2"/>
+      <VarDeclaration name="p2" type="STRING" initialvalue="10"/>
+    </InternalVars>
     <Algorithm Name="ALG" Type="ST"><![CDATA[IF (LS >= LS3 OR LS <= LS1) THEN
 VA4 := TRUE;
 VA2 := FALSE;

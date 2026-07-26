@@ -23,17 +23,36 @@ def generate_fb_xml(Safslprocess,reference_table):
 
     InputVars = SubElement(interface, "InputVars")
     OutputVars = SubElement(interface, "OutputVars")
-    
+
     BasicFB = SubElement(root, "BasicFB")
+    InternalVars = SubElement(BasicFB, "InternalVars")
+    
     
     Algorithm = SubElement( BasicFB, "Algorithm", { "Name": "ALG", "Type":"ST" })
     ECC = SubElement(root, "ECC")
     SubElement(ECC, "ECState", { "name": "START", "Initial":"true"})
 
     body_state = SubElement(ECC,"ECState",{"name": "BODY",})
-    
-    SubElement(body_state,"ECAction",{"Algorithm": "ALG"})
 
+    SubElement(body_state,"ECAction",{"Algorithm": "ALG"})
+    
+    
+    for property in  Safslprocess.interface.properties:
+        attributes = {
+                "name": property.name,
+                "type": "STRING",
+                "initialvalue": property.value
+            }
+    
+        SubElement(
+                InternalVars,
+                "VarDeclaration",
+                attributes
+            )
+    
+    for range in  Safslprocess.interface.ranges:
+        pass
+    
     for terminal in Safslprocess.interface.terminals:
 
         if terminal.direction == "Input":
@@ -224,12 +243,14 @@ def generate_fb_xml(Safslprocess,reference_table):
              
     
     for statement in Safslprocess.body.statements:
-        if isinstance(statement.children[0], AssignmentNode):
-            generate_assignment(statement)
 
         if isinstance(statement.children[0], IfNode):
             generate_if(statement)
-    
+                    
+        elif isinstance(statement.children[0].expression, AssignmentNode):
+            generate_assignment(statement.expression)
+
+
     try:
         st_code = "\n".join(algorithm)
         Algorithm.text = etree.CDATA(st_code)
@@ -241,19 +262,18 @@ def generate_fb_xml(Safslprocess,reference_table):
 
 def generate_assignment(statement):
 
-    if statement.children[0].operator == "assignS":
+    if statement.operator == "assignS":
         algorithm.append(
-            f"{statement.children[0].target} := {str(statement.children[0].value.value).upper()};"
+            f"{statement.target} := {str(statement.value.value).upper()};"
         )
 
     else:
         algorithm.append(
-            f"{statement.target} := {statement.value};"
+            f"{statement.target} := {statement.value.value};"
         )
 
 def generate_if(statement):
     
-    test = "Hello"
     condition = generate_expression(statement.children[0].condition)
 
     algorithm.append(f"IF {condition} THEN")
@@ -265,11 +285,13 @@ def generate_if(statement):
 
 def generate_statement(statement):
 
-    if isinstance(statement.children[0], AssignmentNode):
-        generate_assignment(statement)
-
-    elif isinstance(statement.children[0], IfNode):
+    if isinstance(statement.children[0], IfNode):
         generate_if(statement)
+    
+    elif isinstance(statement.children[0].expression, AssignmentNode):
+        generate_assignment(statement.children[0].expression)
+
+
 
 
 def is_dexpi_signal(reference):

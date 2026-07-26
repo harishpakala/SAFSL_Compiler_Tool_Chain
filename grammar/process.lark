@@ -9,7 +9,7 @@ smc_decl: "SMC" IDENTIFIER "=" IDENTIFIER "." IDENTIFIER ";"
     
 process: "Process"  IDENTIFIER "{" interface_decl?  body_decl? evolution_decl? "}"
 
-interface_decl: "Interface" "{" terminal_decl* port_decl* predicate_decl* property_declaration* range_declaration* "}"
+interface_decl: "Interface" "{" terminal_decl* port_decl* predicate_decl* "}"
 body_decl: "Body" "{" statement* "}"
 evolution_decl: "Evolution" "{"  "}"
 
@@ -24,26 +24,33 @@ INPUT: "Input"
 OUTPUT: "Output"
 predicate_decl: "Predicate" IDENTIFIER  "->" IDENTIFIER "{" expression "}"
 
-?expression: boolean_expression | arithmetic_expression | literal | qualified_identifier | relational_expression | assignment_stmt
+?expression: boolean_expression | arithmetic_expression | literal | qualified_identifier | relational_expression
 ?boolean_expression: BOOLEAN_OPERATOR "(" expression_list ")" |  UNARY_BOOLEAN_OPERATOR "(" expression ")"
 relational_expression: RELATIONAL_OPERATOR "(" expression_list ")"
 arithmetic_expression: ARITHMETIC_OPERATOR "(" expression_list ")"
-assignment_stmt: ASSIGNMENT_OPERATOR "(" expression_list ")" 
+
 
 qualified_identifier: IDENTIFIER ("." IDENTIFIER)*
 literal: NUMBER | STRING | BOOLEAN
 qualified_literal: NUMBER "@" IDENTIFIER ":" IDENTIFIER
 
-statement: expression_stmt | if_stmt | foreach_stmt
+statement:declaration | assignment_stmt | field_assignment | expression_stmt | if_stmt | foreach_stmt
 
+declaration: ELEMENT_TYPE IDENTIFIER"="constructor";" | ELEMENT_TYPE IDENTIFIER "=" qualified_identifier ";"
 
-property_declaration: "Property" IDENTIFIER "= "  "new" "Property" "(" STRING "," STRING "," STRING ")" ";"
-range_declaration: "Range" IDENTIFIER "= "  "new" "Range" "(" STRING "," STRING "," STRING ")" ";"
-
+constructor: property_constructor | range_constructor | smc_constructor | submodel_constructor
+property_constructor: "new" "Property" "(" STRING ")" | "new" "Property" "(" STRING "," semantic_ref "," expression ")"
+range_constructor: "new" "Range" "(" STRING ")" | "new" "Range" "(" STRING "," semantic_ref "," expression "," expression ")"
+smc_constructor: "new" "SMC" IDENTIFIER? "{" element_list? "}"
+submodel_constructor: "new" "Submodel" IDENTIFIER? "{" element_list? "}"
 semantic_ref: IDENTIFIER ":" IDENTIFIER
 
 expression_list: expression ("," expression)*
 element_list: expression ("," expression)*
+assignment_stmt: IDENTIFIER "." ASSIGNMENT_OPERATOR "(" expression ")" ";"
+
+field_assignment: qualified_identifier "=" expression";"
+
 
 
 expression_stmt: expression ";"

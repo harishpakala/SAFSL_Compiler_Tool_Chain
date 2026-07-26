@@ -24,8 +24,11 @@ from safsl_ast.nodes import (
     SubmodelReference,
     SubmodelElementReference,
     Reference,
-    ElementReference
+    ElementReference,
+    PropertyNode,
+    RangeNode
 )
+from html5rdf._ihatexml import name
 
 class AASResolver:
 
@@ -113,7 +116,8 @@ class SAFSLTransformer(Transformer):
         terminals=[]
         ports=[]
         predicates=[]
-
+        property_decls = []
+        range_decls = []
 
         for item in items:
 
@@ -125,13 +129,19 @@ class SAFSLTransformer(Transformer):
 
             elif isinstance(item,PredicateNode):
                 predicates.append(item)
+            
+            elif isinstance(item,PropertyNode):
+                property_decls.append(item)
 
-
+            elif isinstance(item,RangeNode):
+                range_decls.append(item)                
 
         return InterfaceNode(
             terminals=terminals,
             ports=ports,
-            predicates=predicates
+            predicates=predicates,
+            properties=property_decls,
+            ranges=property_decls
         )
 
 
@@ -170,7 +180,13 @@ class SAFSLTransformer(Transformer):
             condition=items[2]
         )
 
-
+    
+    def property_declaration(self,items):
+        return PropertyNode(
+                name = str(items[0]).strip('"'),
+                value = str(items[3]).strip('"'),
+                semanticId = str(items[2]).strip('"')
+            )
 
 
     def body_decl(self,items):
@@ -182,12 +198,9 @@ class SAFSLTransformer(Transformer):
     def assignment_stmt(self,items):
 
         return AssignmentNode(
-
-            target=str(items[0]),
-
-            operator=str(items[1]),
-
-            value=items[2]
+            operator=str(items[0]),
+            target=str(items[1][0].name),
+            value=items[1][1]
         )
 
 

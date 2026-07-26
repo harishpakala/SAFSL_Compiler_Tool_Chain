@@ -18,7 +18,6 @@ Property StartCmd=CPrp.Start;
 Process q3 {
 
     Interface {
-
         Terminal Input EP4;
         Terminal Output EP5;
         Terminal Output EP6;
@@ -41,22 +40,22 @@ Process q3 {
 		Predicate P5 -> EP6 {
 		notS(orS(lessS(pH, pHMin), greatS(pH, pHMax)))
 		}
-
+		Property p1 = new Property("p1","QUDT:K","2");
+		Property p2 = new Property("p2","QUDT:K","10");
     }
 
 
     Body {
             IF (orS(greatES(LS, LS3),lessES(LS,LS1)))
             THEN
-				VA4.assignS(True);
-                VA2.assignS(False);
+				assignS(VA4,True);
+                assignS(VA2,False);
 
             END_IF;
 			IF (notS(orS(lessS(pH,pHMin), greatS(pH,pHMax))))
             THEN
-				VA3.assignS(True);
-                VA2.assignS(False);
-
+				assignS(VA3,True);
+                assignS(VA2,False);
             END_IF;
     }
 
