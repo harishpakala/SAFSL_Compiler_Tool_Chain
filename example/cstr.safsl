@@ -46,6 +46,10 @@ Process q3 {
 
 
     Body {
+    		assign(p2,add(p1,p2));
+    		assign(p1,mul(p1,p2));
+    		assign(p1,div(p1,p2));
+    		assign(p1,sub(p1,p2));
             IF (orS(greatES(LS, LS3),lessES(LS,LS1)))
             THEN
 				assignS(VA4,True);

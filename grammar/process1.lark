@@ -2,7 +2,7 @@ start: specification
 
 ?specification: "Specification" IDENTIFIER "{" submodel_decl* reference_decl* process+ "}"
 
-submodel_decl: "Submodel" IDENTIFIER "=" STRING ";"
+submodel_decl: SUBMODEL IDENTIFIER "=" STRING ";"
 ?reference_decl: property_decl | range_decl | smc_decl
 range_decl: "Range" IDENTIFIER "=" IDENTIFIER "." IDENTIFIER ";"
 smc_decl: "SMC" IDENTIFIER "=" IDENTIFIER "." IDENTIFIER ";"
@@ -19,26 +19,24 @@ port_decl: "Port" DIRECTION IDENTIFIER port_reference? ";"
 port_reference: "=" reference_path
 property_decl: "Property" IDENTIFIER "=" reference_path ";"
 reference_path: IDENTIFIER ("." IDENTIFIER)*
-DIRECTION : INPUT | OUTPUT
-INPUT: "Input"
-OUTPUT: "Output"
+
 predicate_decl: "Predicate" IDENTIFIER  "->" IDENTIFIER "{" expression "}"
 
-?expression: boolean_expression | arithmetic_expression | literal | qualified_identifier | relational_expression | assignment_stmt
+?expression: boolean_expression | arithmetic_expression | literal | qualified_identifier | relational_expression 
 ?boolean_expression: BOOLEAN_OPERATOR "(" expression_list ")" |  UNARY_BOOLEAN_OPERATOR "(" expression ")"
 relational_expression: RELATIONAL_OPERATOR "(" expression_list ")"
 arithmetic_expression: ARITHMETIC_OPERATOR "(" expression_list ")"
-assignment_stmt: ASSIGNMENT_OPERATOR "(" expression_list ")" 
+
 
 qualified_identifier: IDENTIFIER ("." IDENTIFIER)*
 literal: NUMBER | STRING | BOOLEAN
 qualified_literal: NUMBER "@" IDENTIFIER ":" IDENTIFIER
 
-statement: expression_stmt | if_stmt | foreach_stmt
+statement: expression_stmt | assignment_stmt | if_stmt | foreach_stmt
 
 
-property_declaration: "Property" IDENTIFIER "= "  "new" "Property" "(" STRING "," STRING "," STRING ")" ";"
-range_declaration: "Range" IDENTIFIER "= "  "new" "Range" "(" STRING "," STRING "," STRING ")" ";"
+property_declaration: PROPERTY IDENTIFIER "= "  NEW PROPERTY "(" STRING "," STRING "," STRING ")" ";"
+range_declaration: RANGE IDENTIFIER "= "  NEW  RANGE "(" STRING "," STRING "," STRING ")" ";"
 
 semantic_ref: IDENTIFIER ":" IDENTIFIER
 
@@ -47,52 +45,31 @@ element_list: expression ("," expression)*
 
 
 expression_stmt: expression ";"
-
-if_stmt: "IF" "(" expression ")" "THEN" statement*"END_IF"";"
+assignment_stmt: ASSIGNMENT_OPERATOR "(" expression_list ")" ";"
+if_stmt: "IF" "(" expression ")" "THEN" statement*"END_IF" ";"
 foreach_stmt: "FOREACH" "(" IDENTIFIER "IN" expression ")" "DO" statement* "END_FOREACH" ";"
 
    
 
-UNARY_BOOLEAN_OPERATOR.10: NOT | NOTS
-BOOLEAN_OPERATOR.10: AND | ANDS | OR | ORS
-ARITHMETIC_OPERATOR.10: ADD | ADDS | SUB | SUBS | MUL | MULS | DIV | DIVS
-RELATIONAL_OPERATOR.10:  EQUAL | EQUALS | LESS | LESSS | LESSE | LESSES | GREAT | GREATS | GREATE | GREATES
-ELEMENT_TYPE.10: PROPERTY | RANGE | SMC | SUBMODEL
+UNARY_BOOLEAN_OPERATOR.20: "not" | "notS"
+BOOLEAN_OPERATOR.20: "and" | "andS" | "or" | "orS"
+ARITHMETIC_OPERATOR.20: "add" | "addS" | "sub" | "subS" | "mul" | "mulS" | "div" | "divS"
+RELATIONAL_OPERATOR.20: "equal" | "equalS" | "less" | "lessS" | "lessE" | "lessES" | "great" | "greatS" | "greatE" | "greatES"
+ASSIGNMENT_OPERATOR.20: "assign" | "assignS"
+BOOLEAN.10: "True" | "False"
+NEW.20 : "new"
 
-NOT: "not"
-NOTS: "notS"
-AND: "and"
-ANDS: "andS"
-OR: "or"
-ORS: "orS"
-ADD: "add"
-ADDS: "addS"
-SUB: "sub"
-SUBS: "subS"
-MUL: "mul"
-MULS: "mulS"
-DIV: "div"
-DIVS: "divS"
-EQUAL: "equal"
-EQUALS: "equalS"
-LESS: "less"
-LESSS: "lessS"
-LESSE: "lessE"
-LESSES: "lessES"
-GREAT: "great"
-GREATS: "greatS"
-GREATE: "greatE"
-GREATES: "greatES"
-ASSIGNMENT_OPERATOR.10: ASSIGN | ASSIGNS
-ASSIGN: "assign"
-ASSIGNS: "assignS"
+
+ELEMENT_TYPE.10: PROPERTY | RANGE | SMC | SUBMODEL
 PROPERTY: "Property"
 RANGE: "Range"
 SMC: "SMC"
 SUBMODEL: "Submodel"
 
+DIRECTION : INPUT | OUTPUT
+INPUT: "Input"
+OUTPUT: "Output"
 
-BOOLEAN.10: "True" | "False"
 IDENTIFIER: /[A-Za-z_][A-Za-z0-9_]*/
 
 

@@ -5,6 +5,7 @@ Created on Jul 25, 2026
 '''
 
 from lark import Transformer
+from lxml import etree 
 
 from safsl_ast.nodes import (
     Specification,
@@ -183,9 +184,9 @@ class SAFSLTransformer(Transformer):
     
     def property_declaration(self,items):
         return PropertyNode(
-                name = str(items[0]).strip('"'),
-                value = str(items[3]).strip('"'),
-                semanticId = str(items[2]).strip('"')
+                name = str(items[1]).strip('"'),
+                value = str(items[6]).strip('"'),
+                semanticId = str(items[5]).strip('"')
             )
 
 
@@ -196,13 +197,12 @@ class SAFSLTransformer(Transformer):
         )
 
     def assignment_stmt(self,items):
-
+        
         return AssignmentNode(
-            operator=str(items[0]),
-            target=str(items[1][0].name),
-            value=items[1][1]
-        )
-
+            operator = str(items[0]),
+            target = items[1][0].name,
+            value = ExpressionStatement(items[1][1])
+            )
 
 
     def expression_stmt(self,items):
@@ -235,7 +235,7 @@ class SAFSLTransformer(Transformer):
         )
 
 
-    def boolean_call(self,items):
+    def boolean_expression(self,items):
 
         return Operation(
 
@@ -246,7 +246,7 @@ class SAFSLTransformer(Transformer):
 
 
 
-    def relational_expr(self,items):
+    def relational_expression(self,items):
 
         return Operation(
 
@@ -257,13 +257,13 @@ class SAFSLTransformer(Transformer):
 
 
 
-    def arithmetic_call(self,items):
+    def arithmetic_expression(self,items):
 
         return Operation(
 
-            operator=str(items[1]),
+            operator=str(items[0].value),
 
-            operands=list(items[2:])
+            operands=[x for x in items[1]]
         )
 
 
@@ -300,7 +300,7 @@ class SAFSLTransformer(Transformer):
             path=ref_path[1:]
         )
 
-    def relational_expression(self, items):
+    def relational_call(self, items):
     
         operator = str(items[0])
     
@@ -315,7 +315,7 @@ class SAFSLTransformer(Transformer):
         return list(items)
 
 
-    def boolean_expression(self, items):
+    def boolean_call(self, items):
     
         operator = str(items[0])
     
@@ -325,6 +325,8 @@ class SAFSLTransformer(Transformer):
             operator=operator,
             operands=operands
         )
+
+
 
 class QUDTResolver:
 

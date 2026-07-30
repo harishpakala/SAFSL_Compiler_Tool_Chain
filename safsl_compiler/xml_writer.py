@@ -247,8 +247,8 @@ def generate_fb_xml(Safslprocess,reference_table):
         if isinstance(statement.children[0], IfNode):
             generate_if(statement)
                     
-        elif isinstance(statement.children[0].expression, AssignmentNode):
-            generate_assignment(statement.expression)
+        elif isinstance(statement.children[0], AssignmentNode):
+            generate_assignment(statement.children[0])
 
 
     try:
@@ -264,13 +264,14 @@ def generate_assignment(statement):
 
     if statement.operator == "assignS":
         algorithm.append(
-            f"{statement.target} := {str(statement.value.value).upper()};"
+            f"{statement.target} := {generate_expression(statement.value.expression)};"
         )
 
     else:
         algorithm.append(
-            f"{statement.target} := {statement.value.value};"
+            f"{statement.target} := {generate_expression(statement.value.expression)};"
         )
+
 
 def generate_if(statement):
     
@@ -288,8 +289,8 @@ def generate_statement(statement):
     if isinstance(statement.children[0], IfNode):
         generate_if(statement)
     
-    elif isinstance(statement.children[0].expression, AssignmentNode):
-        generate_assignment(statement.children[0].expression)
+    elif isinstance(statement.children[0], AssignmentNode):
+        generate_assignment(statement.children[0])
 
 
 
@@ -352,33 +353,33 @@ def generate_expression(expr):
 
         if expr.operator == "lessES":
             return (
-                f"{generate_expression(expr.operands[0])} <= "
-                f"{generate_expression(expr.operands[1])}"
+                f"{generate_expression(expr.operands[0][0])} <= "
+                f"{generate_expression(expr.operands[0][1])}"
             )
 
         elif expr.operator == "greatES":
             return (
-                f"{generate_expression(expr.operands[0])} >= "
-                f"{generate_expression(expr.operands[1])}"
+                f"{generate_expression(expr.operands[0][0])} >= "
+                f"{generate_expression(expr.operands[0][1])}"
             )
 
         elif expr.operator == "lessS":
             return (
-                f"{generate_expression(expr.operands[0])} < "
-                f"{generate_expression(expr.operands[1])}"
+                f"{generate_expression(expr.operands[0][0])} < "
+                f"{generate_expression(expr.operands[0][1])}"
             )
 
         elif expr.operator == "greatS":
             return (
-                f"{generate_expression(expr.operands[0])} > "
-                f"{generate_expression(expr.operands[1])}"
+                f"{generate_expression(expr.operands[0][0])} > "
+                f"{generate_expression(expr.operands[0][1])}"
             )
             
 
         elif expr.operator == "orS":
             return (
-                f"({generate_expression(expr.operands[0])} OR "
-                f"{generate_expression(expr.operands[1])})"
+                f"({generate_expression(expr.operands[0][0])} OR "
+                f"{generate_expression(expr.operands[0][1])})"
             )
 
         elif expr.operator == "notS":
@@ -386,10 +387,42 @@ def generate_expression(expr):
         
             if isinstance(operand, list):
                 operand = operand[0]
-        
+            
             return f"NOT ({generate_expression(operand)})"
+            
+        elif expr.operator == "add":
+            return (
+                f"({generate_expression(expr.operands[0])} + "
+                f"{generate_expression(expr.operands[1])})"
+            )
+
+        elif expr.operator == "sub":
+            return (
+                f"({generate_expression(expr.operands[0])} - "
+                f"{generate_expression(expr.operands[1])})"
+            )
+            
+        
+        elif expr.operator == "mul":
+            return (
+                f"({generate_expression(expr.operands[0])} * "
+                f"{generate_expression(expr.operands[1])})"
+            )
+        
+        elif expr.operator == "div":
+            return (
+                f"({generate_expression(expr.operands[0])} / "
+                f"{generate_expression(expr.operands[1])})"
+            )            
 
     raise Exception(f"Unknown expression type: {expr}")
 
 
+def generate_add(
+    expr,
+    symbol_table,
+    target_info,
+    qudt_resolver
+):
+    return "(" + " + ".join(expr.operands) + ")"
 
