@@ -4,8 +4,6 @@ Created on Jul 26, 2026
 @author: haris
 '''
 
-#!/usr/bin/env python3
-
 import re
 from pathlib import Path
 
