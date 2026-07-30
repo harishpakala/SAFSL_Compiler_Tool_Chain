@@ -3,10 +3,12 @@ start: specification
 ?specification: "Specification" IDENTIFIER "{" submodel_decl* reference_decl* process+ "}"
 
 submodel_decl: SUBMODEL IDENTIFIER "=" STRING ";"
-?reference_decl: property_decl | range_decl | smc_decl
-range_decl: "Range" IDENTIFIER "=" IDENTIFIER "." IDENTIFIER ";"
-smc_decl: "SMC" IDENTIFIER "=" IDENTIFIER "." IDENTIFIER ";"
-    
+
+?reference_decl: property_ref_decl | range_ref_decl | smc_ref_decl
+property_ref_decl: "Property" IDENTIFIER "=" reference_path ";"
+range_ref_decl: "Range" IDENTIFIER "=" reference_path ";"
+smc_ref_decl: "SMC" IDENTIFIER "=" reference_path ";"
+
 process: "Process"  IDENTIFIER "{" interface_decl?  body_decl? evolution_decl? "}"
 
 interface_decl: "Interface" "{" terminal_decl* port_decl* predicate_decl* property_declaration* range_declaration* "}"
@@ -17,8 +19,7 @@ evolution_decl: "Evolution" "{"  "}"
 terminal_decl: "Terminal" DIRECTION  IDENTIFIER ";"
 port_decl: "Port" DIRECTION IDENTIFIER port_reference? ";"
 port_reference: "=" reference_path
-property_decl: "Property" IDENTIFIER "=" reference_path ";"
-reference_path: IDENTIFIER ("." IDENTIFIER)*
+
 
 predicate_decl: "Predicate" IDENTIFIER  "->" IDENTIFIER "{" expression "}"
 
@@ -27,12 +28,12 @@ predicate_decl: "Predicate" IDENTIFIER  "->" IDENTIFIER "{" expression "}"
 relational_expression: RELATIONAL_OPERATOR "(" expression_list ")"
 arithmetic_expression: ARITHMETIC_OPERATOR "(" expression_list ")"
 
-
+reference_path: IDENTIFIER ("." IDENTIFIER)*
 qualified_identifier: IDENTIFIER ("." IDENTIFIER)*
 literal: NUMBER | STRING | BOOLEAN
 qualified_literal: NUMBER "@" IDENTIFIER ":" IDENTIFIER
 
-statement: expression_stmt | assignment_stmt | if_stmt | foreach_stmt
+statement: assignment_stmt | if_stmt | foreach_stmt
 
 
 property_declaration: PROPERTY IDENTIFIER "= "  NEW PROPERTY "(" STRING "," STRING "," STRING ")" ";"

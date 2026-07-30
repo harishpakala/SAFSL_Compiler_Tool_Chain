@@ -289,7 +289,7 @@ class SAFSLTransformer(Transformer):
             return Literal(token[1:-1])   # remove quotes
 
    
-    def property_decl(self, items):
+    def property_ref_decl(self, items):
         
         ref_path  = items[1]
     
