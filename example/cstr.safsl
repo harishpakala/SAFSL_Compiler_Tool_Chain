@@ -1,17 +1,18 @@
 Specification CSTR {
 
-Submodel DEXPI="Q1NUUlByb3A=";
-Submodel CPrp="Q1NUUlByb3A=";
-Property VA2 = DEXPI.ActuatingFunctions.VA_CV_002;
-Property VA3 = DEXPI.ActuatingFunctions.VA_CV_003;
-Property VA4 = DEXPI.ActuatingFunctions.VA_CV_004;
-Property LS1=CPrp.LS1; 
-Property LS2=CPrp.LS2;
-Property LS3=CPrp.LS3;
-Property LS1=CPrp.LS1; 
-Property pHMin=CPrp.pHMin;
-Property pHMax=CPrp.pHMax;
-Property StartCmd=CPrp.Start;
+Ref Submodel DEXPI="Q1NUUlByb3A=";
+Ref Submodel CPrp="Q1NUUlByb3A=";
+Ref SMC VA2 = DEXPI.ActuatingFunctions.VA_CV_002;
+Ref SMC VA3 = DEXPI.ActuatingFunctions.VA_CV_003;
+Ref SMC VA4 = DEXPI.ActuatingFunctions.VA_CV_004;
+Ref SMC LI = DEXPI.InstrumentationFunctions.LI_01;
+Ref SMC AT = DEXPI.InstrumentationFunctions.AT_01;
+Ref Property LS1=CPrp.LS1; 
+Ref Property LS2=CPrp.LS2;
+Ref Property LS3=CPrp.LS3;
+Ref Property pHMin=CPrp.pHMin;
+Ref Property pHMax=CPrp.pHMax;
+Ref Property StartCmd=CPrp.Start;
 
 
 
@@ -21,13 +22,15 @@ Process q3 {
         Terminal Input EP4;
         Terminal Output EP5;
         Terminal Output EP6;
+        Port Input LS = LI;
+		Port Input pH = AT;
+
         Port Input LS1 = LS1;
-		Port Input LS2 = LS2;
-		Port Input LS3 = LS3;
+        Port Input LS2 = LS2;
+        Port Input LS3 = LS3;                
+		Port Input pH = pHMin;
+		Port Input pH = pHMax;
 		
-		
-        Port Input pHMin = LS1;
-		Port Input pHMax = LS2;
 
 		Port Output VA2 = VA2;
 		Port Output VA3 = VA3;

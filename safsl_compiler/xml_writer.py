@@ -9,10 +9,11 @@ from lxml import etree
 
 from safsl_ast.nodes import AssignmentNode, IfNode, Identifier, Literal, Operation
 
+from safsl_ast.nodes import ( PropertyReference)
 
 algorithm = []
 
-def generate_fb_xml(Safslprocess,reference_table):
+def generate_fb_xml(Safslprocess,reference_table,references):
 
     root = Element( "FBType", { "name": Safslprocess.name})
 
@@ -163,12 +164,12 @@ def generate_fb_xml(Safslprocess,reference_table):
                     elif reference.element_type == "Range":
                         value = f"{reference.min}:{reference.max}"
     
-                    elif reference.submodel == "DEXPI":
+                elif reference.submodel == "DEXPI":
                     
-                        if resolved.element_type == "SubmodelElementCollection":
+                    if resolved.element_type == "SubmodelElementCollection":
                     
-                            value = "0.0"
-                            address = "Empty"
+                        value = "0.0"
+                        address = "Empty"
     
     
                 else:

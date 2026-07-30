@@ -9,11 +9,13 @@
       <Event name="EP6"/>
     </EventOutputs>
     <InputVars>
+      <VarDeclaration name="LS" type="REAL" Value="0.0" Address="Empty"/>
+      <VarDeclaration name="pH" type="REAL" Value="0.0" Address="Empty"/>
       <VarDeclaration name="LS1" type="REAL" Value="0.2"/>
       <VarDeclaration name="LS2" type="REAL" Value="0.6"/>
       <VarDeclaration name="LS3" type="REAL" Value="0.9"/>
-      <VarDeclaration name="pHMin" type="REAL" Value="0.2"/>
-      <VarDeclaration name="pHMax" type="REAL" Value="0.6"/>
+      <VarDeclaration name="pH" type="REAL" Value="6.5"/>
+      <VarDeclaration name="pH" type="REAL" Value="7.5"/>
     </InputVars>
     <OutputVars>
       <VarDeclaration name="VA2" type="REAL" Value="0.0" Address="Empty"/>

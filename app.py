@@ -145,12 +145,13 @@ if __name__ == "__main__":
         reference.idShort: reference
         for reference in specification.references
     }
-
+    
     for process in specification.processes:
 
         xml = generate_fb_xml(
             process,
-            reference_table
+            reference_table,
+            specification.references
         )
 
         pretty = pretty_xml(xml)

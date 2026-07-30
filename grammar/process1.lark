@@ -1,13 +1,9 @@
 start: specification
 
-?specification: "Specification" IDENTIFIER "{" submodel_decl* reference_decl* process+ "}"
+?specification: "Specification" IDENTIFIER "{" reference_decl* process+ "}"
 
-submodel_decl: SUBMODEL IDENTIFIER "=" STRING ";"
-
-?reference_decl: property_ref_decl | range_ref_decl | smc_ref_decl
-property_ref_decl: "Property" IDENTIFIER "=" reference_path ";"
-range_ref_decl: "Range" IDENTIFIER "=" reference_path ";"
-smc_ref_decl: "SMC" IDENTIFIER "=" reference_path ";"
+reference_decl: "Ref" ELEMENT_TYPE IDENTIFIER "=" reference_value ";"
+reference_value: STRING | reference_path
 
 process: "Process"  IDENTIFIER "{" interface_decl?  body_decl? evolution_decl? "}"
 

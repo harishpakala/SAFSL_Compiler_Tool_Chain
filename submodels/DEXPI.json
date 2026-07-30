@@ -3,6 +3,62 @@
     "id": "urn:safsl:DEXPI",
 
     "submodelElements": [
+{
+	"idShort": "InstrumentationFunctions",
+	"modelType": {
+	    "name": "SubmodelElementCollection"
+	},
+	"value": [
+		 {
+			"idShort": "LI_01",
+			"modelType": {
+			    "name": "SubmodelElementCollection"
+			},
+			"value": [
+				{
+				    "idShort": "LocalId",
+				    "modelType": {
+				        "name": "Property"
+				    },
+				    "valueType": "xs:double",
+				    "value": "LT_01"
+				},
+				{
+				    "idShort": "AssetIdentifier",
+				    "modelType": {
+				        "name": "Property"
+				    },
+				    "valueType": "xs:double",
+				    "value": "example.org/LT_01"
+				}
+			]
+		},
+		 {
+			"idShort": "AT_01",
+			"modelType": {
+			    "name": "SubmodelElementCollection"
+			},
+			"value": [
+				{
+				    "idShort": "LocalId",
+				    "modelType": {
+				        "name": "Property"
+				    },
+				    "valueType": "xs:double",
+				    "value": "AT_01"
+				},
+				{
+				    "idShort": "AssetIdentifier",
+				    "modelType": {
+				        "name": "Property"
+				    },
+				    "valueType": "xs:double",
+				    "value": "example.org/AT_01"
+				}
+			]
+		}		
+	]
+},	
  	 {
 		"idShort": "ActuatingFunctions",
 		"modelType": {

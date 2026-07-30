@@ -26,10 +26,10 @@ from safsl_ast.nodes import (
     SubmodelElementReference,
     Reference,
     ElementReference,
+    SMCReference,
     PropertyNode,
     RangeNode
 )
-from html5rdf._ihatexml import name
 
 class AASResolver:
 
@@ -288,17 +288,32 @@ class SAFSLTransformer(Transformer):
         elif token.type == "STRING":
             return Literal(token[1:-1])   # remove quotes
 
-   
-    def property_ref_decl(self, items):
+    def reference_decl(self, items):
         
-        ref_path  = items[1]
-    
-        return PropertyReference(
-            idShort=str(items[0]),
-            submodel=ref_path[0],#str("CPrp"),
-            value=str(items[0]),
-            path=ref_path[1:]
-        )
+        
+        
+        if items[0].value == "Submodel":
+            return SubmodelReference(name = items[0],
+                                    identifier = str(items[2].children[0]).strip('"'))
+            
+        elif items[0].value == "Property":
+            ref_path  =  items[2].children[0]        
+            return PropertyReference(
+                idShort=str(items[1]),
+                submodel=ref_path[0],#str("CPrp"),
+                value="",
+                path=ref_path[1:]
+            )        
+        elif items[0].value == "Range":
+            pass
+
+
+        elif items[0].value == "SMC":
+            ref_path  =  items[2].children[0]
+            return SMCReference(
+                idShort=str(items[1]),
+                submodel=ref_path[0],#str("CPrp"),
+                path=ref_path[1:])
 
     def relational_call(self, items):
     
