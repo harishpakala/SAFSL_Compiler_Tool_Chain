@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='utf-8'?>
+<FBType name="ExampleQ1">
+  <InterfaceList>
+    <EventInputs/>
+    <EventOutputs/>
+    <InputVars/>
+    <OutputVars/>
+  </InterfaceList>
+  <BasicFB>
+    <InternalVars>
+      <VarDeclaration name="p1" type="REAL" initialvalue="2"/>
+      <VarDeclaration name="p2" type="REAL" initialvalue="10"/>
+      <VarDeclaration name="p3" type="REAL" initialvalue="15"/>
+    </InternalVars>
+    <Algorithm Name="ALG" Type="ST"><![CDATA[p2 := ((p1 - 273.15) + p2 + ((10.0 - 273.15) - 273.15));
+p2 := ((p1 - 273.15) + p2 + 20.0);
+p1 := (p1 + (p2 + 273.15) + p3);
+p3 := (p1 + (p2 + 273.15) + p3);
+p1 := (p1 - (p2 + 273.15) - p3);]]></Algorithm>
+  </BasicFB>
+  <ECC>
+    <ECState name="START" Initial="true"/>
+    <ECState name="BODY">
+      <ECAction Algorithm="ALG"/>
+    </ECState>
+  </ECC>
+</FBType>

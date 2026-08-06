@@ -9,6 +9,7 @@ from pathlib import Path
 from lark import Lark
 
 from safsl_parser.transformer import SAFSLTransformer,AASResolver,QUDTResolver,SemanticResolver
+from semantic.analyzer import SemanticAnalyzer
 from safsl_compiler.xml_writer import generate_fb_xml
 from safsl_aas.builder import load_submodel
 from lxml import etree 
@@ -18,7 +19,7 @@ GRAMMAR_PATH = (
     .parent
     .parent
     / "SAFSL_Compiler_Tool_Chain\\grammar"
-    / "process1.lark"
+    / "process.lark"
 )
 
 GENERATED_FB_PATH = (
@@ -36,10 +37,14 @@ FilePATH = (
 )
 
 qudt_model = {
-    "http://qudt.org/vocab/quantitykind/Temperature": "DEG_C",
-    "http://qudt.org/vocab/quantitykind/Pressure": "BAR",
-    "http://qudt.org/vocab/quantitykind/Length": "M",
-    "http://qudt.org/vocab/quantitykind/Volume": "m3"
+    "http://qudt.org/vocab/quantitykind/Temperature": "QUDT:DEG_C",
+    "http://qudt.org/vocab/quantitykind/Pressure": "QUDT:BAR",
+    "http://qudt.org/vocab/quantitykind/Length": "QUDT:M",
+    "http://qudt.org/vocab/quantitykind/Volume": "QUDT:M3",
+    "http://qudt.org/vocab/quantitykind/Acidity": "QUDT:PH",
+    "https://qudt.org/vocab/unit/PH": "QUDT:PH",
+    "https://qudt.org/vocab/unit/CentiM3": "QUDT:CentiM3",
+    "https://qudt.org/vocab/unit/M3": "QUDT:M3"
 }
 
 class SAFSLParser:
@@ -49,7 +54,7 @@ class SAFSLParser:
 
     def parse(self, source:str):
         tree = self.parser.parse(source)
-        transformer = SAFSLTransformer()
+        transformer = SAFSLTransformer()    
         ast = transformer.transform(tree)
 
         return ast
@@ -106,7 +111,9 @@ if __name__ == "__main__":
 
     parser = SAFSLParser()
     fb = parser.parse(source)
-
+    
+    print("Creation of AST is completed")
+    
     specification = fb.children[0]
 
     resolver = AASResolver(
@@ -118,7 +125,7 @@ if __name__ == "__main__":
         reference.resolved = resolver.resolve(
             reference
         )
-
+    
     qudt_resolver = QUDTResolver(qudt_model)
     semantic_resolver = SemanticResolver()
 
@@ -138,7 +145,8 @@ if __name__ == "__main__":
             reference.unit = qudt_resolver.resolve_unit(
                 reference.semantic_id
             )
-
+    
+    print("Resolution of AAS references is completed")
 
 
     reference_table = {
@@ -146,14 +154,21 @@ if __name__ == "__main__":
         for reference in specification.references
     }
     
-    for process in specification.processes:
-
+    
+    semantic_analyzer = SemanticAnalyzer(reference_table)
+    
+    semantic_analyzer.analyze_specification(
+        specification
+    )
+    
+    for process in specification.processes:  
+       
         xml = generate_fb_xml(
             process,
             reference_table,
             specification.references
         )
-
+        
         pretty = pretty_xml(xml)
 
         output_file = (
@@ -163,3 +178,7 @@ if __name__ == "__main__":
 
         with open(output_file, "wb") as file:
             file.write(pretty)
+        
+        print("The generation of FB for Process  " + process.name  +" is now completed.")
+        
+    print("The FBs are generated succesfully ")

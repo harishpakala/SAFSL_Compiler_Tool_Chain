@@ -75,6 +75,7 @@ def parse_element(submodel_name, element, path=None):
             idShort=element["idShort"],
             submodel=submodel_name,
             path=current_path,
+            dataType=element["valueType"],
             value=element.get("value"),
             semantic_id=semantic_id
         )

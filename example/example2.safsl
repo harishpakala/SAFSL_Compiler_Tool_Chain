@@ -1,0 +1,25 @@
+Specification SimpleController {
+StartTerminal =[ExampleQ1];
+    Process ExampleQ1 {
+
+        Interface {
+        
+			Property p1 = new Property("xs:float","QUDT:K","2");
+			Property p2 = new Property("xs:float","QUDT:DEG_C","10");
+			Property p3 = new Property("xs:float","QUDT:K","15");
+        }
+
+
+        Body {
+	
+			assignS(p2,addS(p1,p2,10@QUDT:K));
+			assignS(p2,addS(p1,p2,20@QUDT:DEG_C));
+    		assignS(p1,addS(p1,p2,p3));
+    		assignS(p3,addS(p1,p2,p3));
+    		assignS(p1,subS(p1,p2,p3));
+
+        }
+
+    }
+
+}

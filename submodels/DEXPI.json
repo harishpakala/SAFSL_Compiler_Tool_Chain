@@ -1,167 +1,230 @@
 {
-    "idShort": "DEXPI",
-    "id": "urn:safsl:DEXPI",
-
-    "submodelElements": [
-{
-	"idShort": "InstrumentationFunctions",
-	"modelType": {
-	    "name": "SubmodelElementCollection"
-	},
-	"value": [
-		 {
-			"idShort": "LI_01",
-			"modelType": {
-			    "name": "SubmodelElementCollection"
-			},
-			"value": [
-				{
-				    "idShort": "LocalId",
-				    "modelType": {
-				        "name": "Property"
-				    },
-				    "valueType": "xs:double",
-				    "value": "LT_01"
-				},
-				{
-				    "idShort": "AssetIdentifier",
-				    "modelType": {
-				        "name": "Property"
-				    },
-				    "valueType": "xs:double",
-				    "value": "example.org/LT_01"
-				}
-			]
-		},
-		 {
-			"idShort": "AT_01",
-			"modelType": {
-			    "name": "SubmodelElementCollection"
-			},
-			"value": [
-				{
-				    "idShort": "LocalId",
-				    "modelType": {
-				        "name": "Property"
-				    },
-				    "valueType": "xs:double",
-				    "value": "AT_01"
-				},
-				{
-				    "idShort": "AssetIdentifier",
-				    "modelType": {
-				        "name": "Property"
-				    },
-				    "valueType": "xs:double",
-				    "value": "example.org/AT_01"
-				}
-			]
-		}		
-	]
-},	
- 	 {
-		"idShort": "ActuatingFunctions",
-		"modelType": {
-		    "name": "SubmodelElementCollection"
-		},
-		"value": [
-			 {
-				"idShort": "VA_CV_001",
-				"modelType": {
-				    "name": "SubmodelElementCollection"
-				},
-				"value": [
-					{
-					    "idShort": "LocalId",
-					    "modelType": {
-					        "name": "Property"
-					    },
-					    "valueType": "xs:double",
-					    "value": "VA_CV_001"
-					},
-					{
-					    "idShort": "AssetIdentifier",
-					    "modelType": {
-					        "name": "Property"
-					    },
-					    "valueType": "xs:double",
-					    "value": "example.org/VA-CV-001"
-					}
-				]
-			},
-			{
-							"idShort": "VA_CV_002",
-							"modelType": {
-							    "name": "SubmodelElementCollection"
-							},
-							"value": [
-								{
-								    "idShort": "LocalId",
-								    "modelType": {
-								        "name": "Property"
-								    },
-								    "valueType": "xs:double",
-								    "value": "VA_CV_002"
-								},
-								{
-								    "idShort": "AssetIdentifier",
-								    "modelType": {
-								        "name": "Property"
-								    },
-								    "valueType": "xs:double",
-								    "value": "example.org/VA-CV-002"
-								}
-							]
-						},
-						{
-										"idShort": "VA_CV_003",
-										"modelType": {
-										    "name": "SubmodelElementCollection"
-										},
-										"value": [
-											{
-											    "idShort": "LocalId",
-											    "modelType": {
-											        "name": "Property"
-											    },
-											    "valueType": "xs:double",
-											    "value": "VA_CV_003"
-											},
-											{
-											    "idShort": "AssetIdentifier",
-											    "modelType": {
-											        "name": "Property"
-											    },
-											    "valueType": "xs:double",
-											    "value": "example.org/VA-CV-003"
-											}
-										]
-									},	
-									{
-													"idShort": "VA_CV_004",
-													"modelType": {
-													    "name": "SubmodelElementCollection"
-													},
-													"value": [
-														{
-														    "idShort": "LocalId",
-														    "modelType": {
-														        "name": "Property"
-														    },
-														    "valueType": "xs:double",
-														    "value": "VA_CV_004"
-														},
-														{
-														    "idShort": "AssetIdentifier",
-														    "modelType": {
-														        "name": "Property"
-														    },
-														    "valueType": "xs:double",
-														    "value": "example.org/VA-CV-004"
-														}
-													]
-												}								
-		]
-	 }
-    ]
+  "idShort": "DEXPI",
+  "id": "urn:safsl:DEXPI",
+  "submodelElements": [
+    {
+      "idShort": "InstrumentationFunctions",
+      "modelType": {
+        "name": "SubmodelElementCollection"
+      },
+      "value": [
+        {
+          "idShort": "LI_01",
+          "modelType": {
+            "name": "SubmodelElementCollection"
+          },
+          "value": [
+            {
+              "idShort": "LocalId",
+              "modelType": {
+                "name": "Property"
+              },
+              "valueType": "xs:double",
+              "value": "LT_01"
+            },
+            {
+              "idShort": "AssetIdentifier",
+              "modelType": {
+                "name": "Property"
+              },
+              "valueType": "xs:double",
+              "value": "example.org/LT_01"
+            },
+            {
+              "idShort": "value",
+              "modelType": {
+                "name": "Property"
+              },
+              "valueType": "xs:float",
+              "value": "0",
+              "semanticId": {
+                "keys": [
+                  {
+                    "type": "GlobalReference",
+                    "value": "https://qudt.org/vocab/unit/M3"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "idShort": "AT_01",
+          "modelType": {
+            "name": "SubmodelElementCollection"
+          },
+          "value": [
+            {
+              "idShort": "LocalId",
+              "modelType": {
+                "name": "Property"
+              },
+              "valueType": "xs:double",
+              "value": "AT_01"
+            },
+            {
+              "idShort": "AssetIdentifier",
+              "modelType": {
+                "name": "Property"
+              },
+              "valueType": "xs:double",
+              "value": "example.org/AT_01"
+            },
+            {
+              "idShort": "value",
+              "modelType": {
+                "name": "Property"
+              },
+              "valueType": "xs:float",
+              "value": "0",
+              "semanticId": {
+                "keys": [
+                  {
+                    "type": "GlobalReference",
+                    "value": "https://qudt.org/vocab/unit/PH"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "idShort": "ActuatingFunctions",
+      "modelType": {
+        "name": "SubmodelElementCollection"
+      },
+      "value": [
+        {
+          "idShort": "VA_CV_001",
+          "modelType": {
+            "name": "SubmodelElementCollection"
+          },
+          "value": [
+            {
+              "idShort": "LocalId",
+              "modelType": {
+                "name": "Property"
+              },
+              "valueType": "xs:double",
+              "value": "VA_CV_001"
+            },
+            {
+              "idShort": "AssetIdentifier",
+              "modelType": {
+                "name": "Property"
+              },
+              "valueType": "xs:double",
+              "value": "example.org/VA-CV-001"
+            },
+            {
+              "idShort": "value",
+              "modelType": {
+                "name": "Property"
+              },
+              "valueType": "xs:boolean",
+              "value": "TRUE"
+            }
+          ]
+        },
+        {
+          "idShort": "VA_CV_002",
+          "modelType": {
+            "name": "SubmodelElementCollection"
+          },
+          "value": [
+            {
+              "idShort": "LocalId",
+              "modelType": {
+                "name": "Property"
+              },
+              "valueType": "xs:double",
+              "value": "VA_CV_002"
+            },
+            {
+              "idShort": "AssetIdentifier",
+              "modelType": {
+                "name": "Property"
+              },
+              "valueType": "xs:double",
+              "value": "example.org/VA-CV-002"
+            },
+            {
+              "idShort": "value",
+              "modelType": {
+                "name": "Property"
+              },
+              "valueType": "xs:boolean",
+              "value": "TRUE"
+            }
+          ]
+        },
+        {
+          "idShort": "VA_CV_003",
+          "modelType": {
+            "name": "SubmodelElementCollection"
+          },
+          "value": [
+            {
+              "idShort": "LocalId",
+              "modelType": {
+                "name": "Property"
+              },
+              "valueType": "xs:double",
+              "value": "VA_CV_003"
+            },
+            {
+              "idShort": "AssetIdentifier",
+              "modelType": {
+                "name": "Property"
+              },
+              "valueType": "xs:double",
+              "value": "example.org/VA-CV-003"
+            },
+            {
+              "idShort": "value",
+              "modelType": {
+                "name": "Property"
+              },
+              "valueType": "xs:boolean",
+              "value": "TRUE"
+            }
+          ]
+        },
+        {
+          "idShort": "VA_CV_004",
+          "modelType": {
+            "name": "SubmodelElementCollection"
+          },
+          "value": [
+            {
+              "idShort": "LocalId",
+              "modelType": {
+                "name": "Property"
+              },
+              "valueType": "xs:double",
+              "value": "VA_CV_004"
+            },
+            {
+              "idShort": "AssetIdentifier",
+              "modelType": {
+                "name": "Property"
+              },
+              "valueType": "xs:double",
+              "value": "example.org/VA-CV-004"
+            },
+            {
+              "idShort": "value",
+              "modelType": {
+                "name": "Property"
+              },
+              "valueType": "xs:boolean",
+              "value": "TRUE"
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }

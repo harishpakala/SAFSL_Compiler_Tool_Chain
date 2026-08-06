@@ -9,36 +9,30 @@
       <Event name="EP6"/>
     </EventOutputs>
     <InputVars>
-      <VarDeclaration name="LS" type="REAL" Value="0.0" Address="Empty"/>
-      <VarDeclaration name="pH" type="REAL" Value="0.0" Address="Empty"/>
-      <VarDeclaration name="LS1" type="REAL" Value="0.2"/>
-      <VarDeclaration name="LS2" type="REAL" Value="0.6"/>
-      <VarDeclaration name="LS3" type="REAL" Value="0.9"/>
-      <VarDeclaration name="pH" type="REAL" Value="6.5"/>
-      <VarDeclaration name="pH" type="REAL" Value="7.5"/>
+      <VarDeclaration name="LS" type="REAL" Value="0" Address="Empty"/>
+      <VarDeclaration name="pH" type="REAL" Value="0" Address="Empty"/>
+      <VarDeclaration name="ls2" type="REAL" Value="0.6"/>
+      <VarDeclaration name="ls3" type="REAL" Value="0.9"/>
+      <VarDeclaration name="phMin" type="REAL" Value="6.5"/>
+      <VarDeclaration name="phMax" type="REAL" Value="7.5"/>
     </InputVars>
     <OutputVars>
-      <VarDeclaration name="VA2" type="REAL" Value="0.0" Address="Empty"/>
-      <VarDeclaration name="VA3" type="REAL" Value="0.0" Address="Empty"/>
-      <VarDeclaration name="VA4" type="REAL" Value="0.0" Address="Empty"/>
+      <VarDeclaration name="va1" type="BOOL" Value="TRUE" Address="Empty"/>
+      <VarDeclaration name="va2" type="BOOL" Value="TRUE" Address="Empty"/>
+      <VarDeclaration name="va3" type="BOOL" Value="TRUE" Address="Empty"/>
+      <VarDeclaration name="va4" type="BOOL" Value="TRUE" Address="Empty"/>
     </OutputVars>
   </InterfaceList>
   <BasicFB>
-    <InternalVars>
-      <VarDeclaration name="p1" type="STRING" initialvalue="2"/>
-      <VarDeclaration name="p2" type="STRING" initialvalue="10"/>
-    </InternalVars>
-    <Algorithm Name="ALG" Type="ST"><![CDATA[p2 := (p1 + p2);
-p1 := (p1 * p2);
-p1 := (p1 / p2);
-p1 := (p1 - p2);
-IF (LS >= LS3 OR LS <= LS1) THEN
-VA4 := TRUE;
-VA2 := FALSE;
+    <InternalVars/>
+    <Algorithm Name="ALG" Type="ST"><![CDATA[IF (LS >= ls3) THEN
+va2 := FALSE;
+va4 := TRUE;
 END_IF;
-IF NOT ((pH < pHMin OR pH > pHMax)) THEN
-VA3 := TRUE;
-VA2 := FALSE;
+IF ((pH >= phMin) AND (pH <= phMax)) THEN
+va2 := FALSE;
+va1 := FALSE;
+va3 := TRUE;
 END_IF;]]></Algorithm>
   </BasicFB>
   <ECC>
@@ -50,13 +44,13 @@ END_IF;]]></Algorithm>
       <ECEventCondition Event="EP4"/>
     </ECTransition>
     <ECTransition Source="BODY" Destination="EP5_STATE">
-      <ECCondition>(LS &lt;= LS2 OR LS &gt;= LS3)</ECCondition>
+      <ECCondition>((LS &lt;= ls2) OR (LS &gt;= LS3))</ECCondition>
     </ECTransition>
     <ECState Name="EP5_STATE">
       <ECAction Output="EP5"/>
     </ECState>
     <ECTransition Source="BODY" Destination="EP6_STATE">
-      <ECCondition>NOT ((pH &lt; pHMin OR pH &gt; pHMax))</ECCondition>
+      <ECCondition>NOT (((pH &lt; pHMin) OR (pH &gt; pHMax)))</ECCondition>
     </ECTransition>
     <ECState Name="EP6_STATE">
       <ECAction Output="EP6"/>

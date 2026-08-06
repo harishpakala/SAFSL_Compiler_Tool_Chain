@@ -51,14 +51,16 @@ class InterfaceNode(ASTNode):
 class PropertyNode(ASTNode):
     name: str
     value: str
-    semanticId: str
-
+    semantic_id: str
+    dataType : str
+    
 @dataclass
 class RangeNode(ASTNode):
     name: str
     min: str
     max: str
-    semanticId: str
+    semantic_id: str
+    dataType : str
 
 @dataclass
 class TerminalNode(ASTNode):
@@ -100,6 +102,15 @@ class Reference:
     path: list[str]
 
 @dataclass
+class RepositoryReference:
+    path: str
+    
+@dataclass
+class StartTerminal:
+    terminals: list[str]
+
+
+@dataclass
 class ElementReference:
     path: list[str]
     resolved: Optional[object] = None
@@ -115,8 +126,8 @@ class Identifier(Expression):
 
 @dataclass
 class Literal(Expression):
-
     value: Any
+    unit: str = None
 
 
 
@@ -218,6 +229,7 @@ class PropertyReference(SubmodelElementReference):
         idShort: str,
         submodel: str,
         path: list[str],
+        dataType:str = "xs:string",
         value: str = None,
         semantic_id: str = None
     ):
@@ -228,6 +240,7 @@ class PropertyReference(SubmodelElementReference):
             element_type="Property",
             semantic_id=semantic_id
         )
+        self.dataType=dataType 
         self.value = value
 
 @dataclass
@@ -240,7 +253,9 @@ class SMCReference(SubmodelElementReference):
         idShort: str,
         submodel: str,
         path: list,
-        elements=None
+        elements=None,
+        dataType=None,  # For DEXPI related stuff
+        value=None,   # For DEXPI related stuff
     ):
 
         super().__init__(
@@ -251,7 +266,8 @@ class SMCReference(SubmodelElementReference):
         )
 
         self.elements = elements or {}
-
+        self.dataType = dataType
+        self.value = value
 
 
 @dataclass
@@ -259,3 +275,12 @@ class SubmodelReference:
     name: str
     identifier: str
     elements: Dict[str, "SubmodelElementReference"] = field(default_factory=dict)
+
+
+@dataclass
+class QualifiedLiteral(Expression):
+    value: Any
+    semantic_id: str
+    
+       
+    

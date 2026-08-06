@@ -5,8 +5,7 @@ Created on Jul 25, 2026
 '''
 
 from lark import Transformer
-from lxml import etree 
-
+from lark.tree import Tree
 from safsl_ast.nodes import (
     Specification,
     ProcessNode,
@@ -28,8 +27,35 @@ from safsl_ast.nodes import (
     ElementReference,
     SMCReference,
     PropertyNode,
-    RangeNode
+    RangeNode,
+    QualifiedLiteral,
+    RepositoryReference,
+    StartTerminal
 )
+
+BOOLEAN_OPERATORS = {
+    "andS",
+    "orS",
+}
+
+UNARY_BOOLEAN_OPERATORS = {
+    "notS",
+}
+
+RELATIONAL_OPERATORS = {
+    "lessS",
+    "lessES",
+    "greatS",
+    "greatES",
+    "equal",
+}
+
+ARITHMETIC_OPERATORS = {
+    "addS",
+    "subS",
+    "mulS",
+    "divS",
+}
 
 class AASResolver:
 
@@ -91,7 +117,12 @@ class SAFSLTransformer(Transformer):
     def reference_path(self, items):
         return [str(x) for x in items]
 
-
+    def repository_decl(self,items):
+        return RepositoryReference( path= str(items[0]).strip('"'))
+    
+    def start_terminal_decl(self,items):
+        return StartTerminal(terminals = [str(x) for x in items])
+    
     def process(self, items):
 
         name = str(items[0])
@@ -131,20 +162,22 @@ class SAFSLTransformer(Transformer):
             elif isinstance(item,PredicateNode):
                 predicates.append(item)
             
-            elif isinstance(item,PropertyNode):
-                property_decls.append(item)
+            elif isinstance(item,Tree):
+                for eNode in item.children:
+                    if isinstance(eNode,PropertyNode):
+                        property_decls.append(eNode)
 
-            elif isinstance(item,RangeNode):
-                range_decls.append(item)                
+                    if isinstance(eNode,RangeNode):
+                        range_decls.append(eNode)
+         
 
         return InterfaceNode(
             terminals=terminals,
             ports=ports,
             predicates=predicates,
             properties=property_decls,
-            ranges=property_decls
+            ranges=range_decls
         )
-
 
 
     def terminal_decl(self,items):
@@ -171,8 +204,6 @@ class SAFSLTransformer(Transformer):
             reference=reference
         )
 
-
-
     def predicate_decl(self,items):
 
         return PredicateNode(
@@ -181,12 +212,24 @@ class SAFSLTransformer(Transformer):
             condition=items[2]
         )
 
+    def smc_decleration(self,items):
+        pass#print("hello")
+    
+    def range_declaration(self,items):
+        return RangeNode(
+                name = str(items[1]).strip('"'),
+                min = str(items[6]).strip('"'),
+                max = str(items[7]).strip('"'),
+                semantic_id = str(items[5]).strip('"'),
+                dataType = str(items[4]).strip('"')
+            )
     
     def property_declaration(self,items):
         return PropertyNode(
                 name = str(items[1]).strip('"'),
                 value = str(items[6]).strip('"'),
-                semanticId = str(items[5]).strip('"')
+                semantic_id = str(items[5]).strip('"'),
+                dataType = str(items[4]).strip('"'),
             )
 
 
@@ -199,10 +242,10 @@ class SAFSLTransformer(Transformer):
     def assignment_stmt(self,items):
         
         return AssignmentNode(
-            operator = str(items[0]),
-            target = items[1][0].name,
-            value = ExpressionStatement(items[1][1])
-            )
+            operator=str(items[0]),
+            target=items[1][0],
+            value=ExpressionStatement(items[1][1])
+        )
 
 
     def expression_stmt(self,items):
@@ -210,7 +253,6 @@ class SAFSLTransformer(Transformer):
         return ExpressionStatement(
             expression=items[0]
         )
-
 
 
     def if_stmt(self,items):
@@ -235,37 +277,47 @@ class SAFSLTransformer(Transformer):
         )
 
 
-    def boolean_expression(self,items):
-
+    def boolean_expression(self, items):
+    
+        operator = str(items[0])
+    
+        operand = items[1]
+    
+    
+        # unary operator
+        if operator in UNARY_BOOLEAN_OPERATORS:
+    
+            return Operation(
+                operator=operator,
+                operands=[operand]
+            )
+    
+    
+        # binary/multi operand operator
+        else:
+    
+            return Operation(
+                operator=operator,
+                operands=list(operand)
+            )
+    
+    def expression(self, items):
+        return items[0]
+    
+    def relational_expression(self, items):
+    
         return Operation(
-
             operator=str(items[0]),
-
-            operands=list(items[1:])
+            operands=list(items[1])
         )
-
-
-
-    def relational_expression(self,items):
-
+    
+    
+    def arithmetic_expression(self, items):
+    
         return Operation(
-
             operator=str(items[0]),
-
-            operands=list(items[1:])
+            operands=list(items[1])
         )
-
-
-
-    def arithmetic_expression(self,items):
-
-        return Operation(
-
-            operator=str(items[0].value),
-
-            operands=[x for x in items[1]]
-        )
-
 
     def IDENTIFIER(self,token):
 
@@ -277,20 +329,25 @@ class SAFSLTransformer(Transformer):
         return str(token)
     
     def literal(self, items):
+    
         token = items[0]
     
         if token.type == "BOOLEAN":
-            return Literal(token == "True")
+            return Literal(
+                token.value == "True"
+            )
     
         elif token.type == "NUMBER":
-            return Literal(float(token))
+            return Literal(
+                float(token)
+            )
     
         elif token.type == "STRING":
-            return Literal(token[1:-1])   # remove quotes
+            return Literal(
+                token[1:-1]
+            )
 
-    def reference_decl(self, items):
-        
-        
+    def reference_decl(self, items):  
         
         if items[0].value == "Submodel":
             return SubmodelReference(name = items[0],
@@ -329,7 +386,6 @@ class SAFSLTransformer(Transformer):
     def expression_list(self, items):
         return list(items)
 
-
     def boolean_call(self, items):
     
         operator = str(items[0])
@@ -342,6 +398,16 @@ class SAFSLTransformer(Transformer):
         )
 
 
+    def qualified_literal(self, items):
+    
+        return QualifiedLiteral(
+            value=float(items[0]),
+            semantic_id=f"{items[1]}:{items[2]}"
+        )
+        
+    def semantic_ref(self, items):
+    
+        return f"{items[0]}:{items[1]}"
 
 class QUDTResolver:
 
@@ -362,8 +428,14 @@ class SemanticResolver:
 
         if not reference.resolved:
             return
-
-
+        
+        if isinstance(reference, SMCReference):
+            if reference.submodel == "DEXPI":
+                reference.resolved.semantic_id =  reference.resolved.elements["value"].semantic_id
+                reference.resolved.dataType = reference.resolved.elements["value"].dataType
+                reference.resolved.value = reference.resolved.elements["value"].value
+                return 
+                
         semantic_id = (
             reference.resolved.semantic_id
         )
@@ -376,3 +448,4 @@ class SemanticResolver:
         else:
 
             reference.semantic_id = None
+

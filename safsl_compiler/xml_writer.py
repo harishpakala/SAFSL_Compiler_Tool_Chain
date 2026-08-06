@@ -7,14 +7,53 @@ Created on Jul 25, 2026
 from lxml.etree import Element, SubElement
 from lxml import etree
 
-from safsl_ast.nodes import AssignmentNode, IfNode, Identifier, Literal, Operation
+from safsl_ast.nodes import AssignmentNode, IfNode, Identifier, Literal, Operation,QualifiedLiteral
 
-from safsl_ast.nodes import ( PropertyReference)
-
+from safsl_ast.nodes import ( PropertyReference,PropertyNode,SMCReference,PortNode)
 algorithm = []
 
-def generate_fb_xml(Safslprocess,reference_table,references):
+data_Types = { "xs:float" : "REAL" , "xs:double" : "LREAL", 
+              "xs:string" : "STRING", "xs:boolean" : "BOOL", "xs:int" : "INT" 
+              }
 
+UNIT_CONVERSIONS = {
+    ("QUDT:K", "QUDT:DEG_C"):
+        lambda x: f"({x} - 273.15)",
+
+    ("QUDT:DEG_C", "QUDT:K"):
+        lambda x: f"({x} + 273.15)",
+
+    ("QUDT:M3", "QUDT:L"):
+        lambda x: f"({x} * 1000.0)",
+
+    ("QUDT:L", "QUDT:M3"):
+        lambda x: f"({x} / 1000.0)",
+
+    ("QUDT:CentiM3", "QUDT:M3"):
+        lambda x: f"({x} / 1000000.0)",
+
+    ("QUDT:M3", "QUDT:CentiM3"):
+        lambda x: f"({x} * 1000000.0)",
+
+    ("QUDT:CentiM3", "QUDT:L"):
+        lambda x: f"({x} / 1000.0)",
+
+    ("QUDT:L", "QUDT:CM3"):
+        lambda x: f"({x} * 1000.0)",        
+    
+}
+
+reference_table = None
+references = None 
+
+
+def generate_fb_xml(Safslprocess,ref_table,refs):
+    global reference_table
+    global references
+    
+    reference_table = ref_table
+    refs = references
+    
     root = Element( "FBType", { "name": Safslprocess.name})
 
     interface = SubElement(root, "InterfaceList")
@@ -29,19 +68,10 @@ def generate_fb_xml(Safslprocess,reference_table,references):
     InternalVars = SubElement(BasicFB, "InternalVars")
     
     
-    Algorithm = SubElement( BasicFB, "Algorithm", { "Name": "ALG", "Type":"ST" })
-    ECC = SubElement(root, "ECC")
-    SubElement(ECC, "ECState", { "name": "START", "Initial":"true"})
-
-    body_state = SubElement(ECC,"ECState",{"name": "BODY",})
-
-    SubElement(body_state,"ECAction",{"Algorithm": "ALG"})
-    
-    
     for property in  Safslprocess.interface.properties:
         attributes = {
                 "name": property.name,
-                "type": "STRING",
+                "type": data_Types[property.dataType],
                 "initialvalue": property.value
             }
     
@@ -50,9 +80,128 @@ def generate_fb_xml(Safslprocess,reference_table,references):
                 "VarDeclaration",
                 attributes
             )
-    
+        
+        reference_table[property.name] = property
+        
     for range in  Safslprocess.interface.ranges:
         pass
+
+    for port in Safslprocess.interface.ports:
+        
+            if port.direction == "Input":
+        
+                value = ""
+                fbdataType = ""
+                address = None
+        
+                if port.reference:
+        
+                    reference = reference_table[
+                        port.reference.path[0]
+                    ]
+                    
+                    if port.name not in reference_table:
+                        reference_table[port.name] = port
+                    
+                    resolved = reference.resolved
+    
+                    if reference.submodel == "CPrp":
+        
+                        if reference.element_type == "Property":
+                            value = reference.resolved.value
+                            fbdataType = data_Types[reference.resolved.dataType]
+        
+                        elif reference.element_type == "Range":
+                            value = f"{reference.min}:{reference.max}"
+        
+                    elif reference.submodel == "DEXPI":
+                        
+                        if resolved.element_type == "SubmodelElementCollection":
+                        
+                            value = resolved.value
+                            address = "Empty"
+                            fbdataType = data_Types[resolved.dataType]
+        
+        
+                    else:
+                        raise Exception(
+                            f"Unsupported submodel {reference.submodel}"
+                        )
+        
+        
+                attributes = {
+                    "name": port.name,
+                    "type": fbdataType,
+                    "Value": value
+                }
+        
+                if address:
+                    attributes["Address"] = address
+        
+        
+                SubElement(
+                    InputVars,
+                    "VarDeclaration",
+                    attributes
+                )
+        
+        
+            elif port.direction == "Output":
+            
+                value = None
+                address = None
+                fbdataType = ""        
+                
+                if port.reference:
+            
+                    reference = reference_table[
+                        port.reference.path[0]
+                    ]
+            
+                    if reference.submodel == "CPrp":
+            
+                        if reference.element_type == "Property":
+                            value = reference.value
+                            fbdataType = data_Types[reference.resolved.dataType]
+            
+                        elif reference.element_type == "Range":
+                            value = f"{reference.min}:{reference.max}"
+            
+            
+                    elif reference.submodel == "DEXPI":
+            
+                        # DEXPI equipment/function reference
+                        value = reference.resolved.value
+                        address = "Empty"
+                        fbdataType = data_Types[reference.resolved.dataType]
+            
+            
+                attributes = {
+                    "name": port.name,
+                    "type": fbdataType
+                }
+            
+                if value is not None:
+                    attributes["Value"] = value
+            
+                if address is not None:
+                    attributes["Address"] = address
+            
+            
+                SubElement(
+                    OutputVars,
+                    "VarDeclaration",
+                    attributes
+                )
+        
+    Algorithm = SubElement( BasicFB, "Algorithm", { "Name": "ALG", "Type":"ST" })
+    
+    ECC = SubElement(root, "ECC")
+    SubElement(ECC, "ECState", { "name": "START", "Initial":"true"})
+
+    body_state = SubElement(ECC,"ECState",{"name": "BODY",})
+
+    SubElement(body_state,"ECAction",{"Algorithm": "ALG"})    
     
     for terminal in Safslprocess.interface.terminals:
 
@@ -141,108 +290,8 @@ def generate_fb_xml(Safslprocess,reference_table,references):
                 }
             )
 
-    for port in Safslprocess.interface.ports:
     
-        if port.direction == "Input":
-    
-            value = None
-            address = None
-    
-            if port.reference:
-    
-                reference = reference_table[
-                    port.reference.path[0]
-                ]
-    
-                resolved = reference.resolved
 
-                if reference.submodel == "CPrp":
-    
-                    if reference.element_type == "Property":
-                        value = reference.resolved.value
-    
-                    elif reference.element_type == "Range":
-                        value = f"{reference.min}:{reference.max}"
-    
-                elif reference.submodel == "DEXPI":
-                    
-                    if resolved.element_type == "SubmodelElementCollection":
-                    
-                        value = "0.0"
-                        address = "Empty"
-    
-    
-                else:
-                    raise Exception(
-                        f"Unsupported submodel {reference.submodel}"
-                    )
-    
-    
-            attributes = {
-                "name": port.name,
-                "type": "REAL",
-                "Value": value
-            }
-    
-            if address:
-                attributes["Address"] = address
-    
-    
-            SubElement(
-                InputVars,
-                "VarDeclaration",
-                attributes
-            )
-    
-    
-        elif port.direction == "Output":
-        
-            value = None
-            address = None
-        
-            if port.reference:
-        
-                reference = reference_table[
-                    port.reference.path[0]
-                ]
-        
-                if reference.submodel == "CPrp":
-        
-                    if reference.element_type == "Property":
-                        value = reference.value
-        
-                    elif reference.element_type == "Range":
-                        value = f"{reference.min}:{reference.max}"
-        
-        
-                elif reference.submodel == "DEXPI":
-        
-                    # DEXPI equipment/function reference
-                    value = "0.0"
-                    address = "Empty"
-        
-        
-            attributes = {
-                "name": port.name,
-                "type": "REAL"
-            }
-        
-            if value is not None:
-                attributes["Value"] = value
-        
-            if address is not None:
-                attributes["Address"] = address
-        
-        
-            SubElement(
-                OutputVars,
-                "VarDeclaration",
-                attributes
-            )
-
-
-             
-    
     for statement in Safslprocess.body.statements:
 
         if isinstance(statement.children[0], IfNode):
@@ -258,19 +307,60 @@ def generate_fb_xml(Safslprocess,reference_table,references):
     except Exception as E:
         print("Error")  
 
-
     return root
 
+def get_operand_type(expr):
+
+    if isinstance(expr, Identifier):
+
+        reference = reference_table.get(expr.name)
+
+        if reference is None:
+            raise Exception(
+                f"Unknown identifier {expr.name}"
+            )
+
+        if isinstance(reference, PropertyNode):
+            return reference.semantic_id
+
+        elif isinstance(reference, PropertyReference):
+            return reference.unit
+
+
+    elif isinstance(expr, QualifiedLiteral):
+
+        return expr.semantic_id
+
+
+    elif isinstance(expr, Literal):
+
+        return None
+
+
+    raise Exception(
+        f"Cannot determine semantic type of {expr}"
+    )
+        
+    return None
+    
 def generate_assignment(statement):
 
     if statement.operator == "assignS":
+        validate_semantic_expression(statement.value.expression)
+        target_type = get_operand_type(statement.target)
+
+        rhs = generate_expression(
+            statement.value.expression,
+            expected_type=target_type
+        )
+
         algorithm.append(
-            f"{statement.target} := {generate_expression(statement.value.expression)};"
+            f"{statement.target.name} := {rhs};"
         )
 
     else:
         algorithm.append(
-            f"{statement.target} := {generate_expression(statement.value.expression)};"
+            f"{statement.target.name} := {generate_expression(statement.value.expression)};"
         )
 
 
@@ -292,9 +382,6 @@ def generate_statement(statement):
     
     elif isinstance(statement.children[0], AssignmentNode):
         generate_assignment(statement.children[0])
-
-
-
 
 def is_dexpi_signal(reference):
 
@@ -335,7 +422,7 @@ def create_input_variable(port, reference):
     return attributes
 
 
-def generate_expression(expr):
+def generate_expression(expr,expected_type=None):
 
     if isinstance(expr, Literal):
 
@@ -344,86 +431,263 @@ def generate_expression(expr):
 
         return str(expr.value)
 
+    elif isinstance(expr, QualifiedLiteral):
+    
+        if expected_type is None:
+            return str(expr.value)
+    
+        if expr.semantic_id == expected_type:
+            return str(expr.value)
+    
+        conversion = get_conversion(
+            expr.semantic_id,
+            expected_type
+        )
+    
+        if conversion:
+            return conversion(str(expr.value))
+    
+        raise Exception(
+            f"No conversion from {expr.semantic_id} to {expected_type}"
+        )
+
 
     elif isinstance(expr, Identifier):
 
         return expr.name
 
 
+    elif isinstance(expr, str):
+
+        return expr
+    
+
     elif isinstance(expr, Operation):
-
-        if expr.operator == "lessES":
-            return (
-                f"{generate_expression(expr.operands[0][0])} <= "
-                f"{generate_expression(expr.operands[0][1])}"
-            )
-
-        elif expr.operator == "greatES":
-            return (
-                f"{generate_expression(expr.operands[0][0])} >= "
-                f"{generate_expression(expr.operands[0][1])}"
-            )
-
-        elif expr.operator == "lessS":
-            return (
-                f"{generate_expression(expr.operands[0][0])} < "
-                f"{generate_expression(expr.operands[0][1])}"
-            )
-
-        elif expr.operator == "greatS":
-            return (
-                f"{generate_expression(expr.operands[0][0])} > "
-                f"{generate_expression(expr.operands[0][1])}"
-            )
-            
-
-        elif expr.operator == "orS":
-            return (
-                f"({generate_expression(expr.operands[0][0])} OR "
-                f"{generate_expression(expr.operands[0][1])})"
-            )
-
-        elif expr.operator == "notS":
-            operand = expr.operands
         
-            if isinstance(operand, list):
-                operand = operand[0]
+        if expr.operator in ["lessES", "greatES", "lessS", "greatS"]:
+            types = [get_expression_type(op) for op in expr.operands]
+        
+            if None in types:
+                print("Hello")
+                raise Exception(
+                    f"{expr.operator} requires semantic operands"
+                )
+        
+            target = types[0]
+        
+            for t in types[1:]:
+                if t != target and get_conversion(t, target) is None:
+                    raise Exception(
+                        f"Operands are not semantically comparable: {target} and {t}"
+                    )
             
-            return f"NOT ({generate_expression(operand)})"
+            operands = [generate_expression(op) for op in expr.operands]
+                
+            if expr.operator == "lessES":
+                return "(" + " <= ".join(operands) + ")"
+        
+            elif expr.operator == "greatES":
+                return "(" + " >= ".join(operands) + ")"
+        
+            elif expr.operator == "lessS":
+                return "(" + " < ".join(operands) + ")"
+        
+            elif expr.operator == "greatS":
+                return "(" + " > ".join(operands) + ")"        
             
+
+        elif expr.operator in ["andS", "orS"]:
+        
+            for operand in expr.operands:
+                if get_expression_type(operand) != "BOOL":
+                    raise Exception(
+                        f"{expr.operator} requires BOOL operands"
+                    )
+        
+            operands = [
+                generate_expression(op)
+                for op in expr.operands
+            ]
+        
+            op = " AND " if expr.operator == "andS" else " OR "
+            return "(" + op.join(operands) + ")"
+        
+        elif expr.operator == "notS":
+        
+            if get_expression_type(expr.operands[0]) != "BOOL":
+                raise Exception(
+                    "notS requires a BOOL operand"
+                )
+        
+            return f"NOT ({generate_expression(expr.operands[0])})"
+
+        
         elif expr.operator == "add":
-            return (
-                f"({generate_expression(expr.operands[0])} + "
-                f"{generate_expression(expr.operands[1])})"
-            )
+            operands = [
+                    generate_expression(op)
+                    for op in expr.operands
+                ]
+            return "(" "+" " + ".join(operands) + ")"
 
         elif expr.operator == "sub":
-            return (
-                f"({generate_expression(expr.operands[0])} - "
-                f"{generate_expression(expr.operands[1])})"
-            )
+            operands = [
+                    generate_expression(op)
+                    for op in expr.operands
+                ]
+            return "(" "-" " + ".join(operands) + ")"
             
         
         elif expr.operator == "mul":
-            return (
-                f"({generate_expression(expr.operands[0])} * "
-                f"{generate_expression(expr.operands[1])})"
-            )
+            operands = [
+                    generate_expression(op)
+                    for op in expr.operands
+                ]
+            return "(" "*" " + ".join(operands) + ")"
         
         elif expr.operator == "div":
-            return (
-                f"({generate_expression(expr.operands[0])} / "
-                f"{generate_expression(expr.operands[1])})"
-            )            
-
+            operands = [
+                    generate_expression(op)
+                    for op in expr.operands
+                ]
+            return "(" "/" " + ".join(operands) + ")" 
+                    
+        elif expr.operator == "addS" or expr.operator == "subS":
+            operands = []
+    
+            for operand in expr.operands:
+                operand_code = generate_expression(
+                    operand,
+                    expected_type=expected_type
+                )
+    
+                operand_type = get_operand_type(operand)
+                if operand_type != expected_type:
+                    operand_code = convert_type(
+                        operand_code,
+                        operand_type,
+                        expected_type
+                    )
+                operands.append(operand_code)
+            
+            if expr.operator == "addS":
+                return "(" + " + ".join(operands) + ")"
+            else:
+                return "(" + " - ".join(operands) + ")"
+    
+    print("Hello")
     raise Exception(f"Unknown expression type: {expr}")
 
+def convert_type(operand_code, operand_type, expected_type):
 
-def generate_add(
-    expr,
-    symbol_table,
-    target_info,
-    qudt_resolver
-):
-    return "(" + " + ".join(expr.operands) + ")"
+    if operand_type == expected_type:
+        return operand_code
 
+    conversion = get_conversion(
+        operand_type,
+        expected_type
+    )
+
+    if conversion is None:
+        raise TypeError(
+            f"No conversion from {operand_type} to {expected_type}"
+        )
+
+    return conversion(operand_code)
+
+def get_conversion(source_type, target_type):
+    return UNIT_CONVERSIONS.get((source_type, target_type))
+
+SEMANTIC_OPERATORS = {
+    "addS",
+    "subS",
+    "mulS",
+    "divS",
+    "lessES",
+    "greatES",
+    "equal",
+    "notS",
+    "orS",
+    "andS"
+}
+
+def validate_semantic_expression(expr):
+
+    if isinstance(expr, Operation):
+
+        if expr.operator in ["addS", "subS", "mulS", "divS"]:
+
+            types = [
+                get_expression_type(x)
+                for x in expr.operands
+            ]
+
+            if None in types:
+                raise Exception(
+                    f"{expr.operator} requires semantic operands"
+                )
+
+            target = types[0]
+
+            for t in types[1:]:
+
+                if t != target:
+
+                    if get_conversion(t, target) is None:
+                        raise Exception(
+                            f"No semantic conversion {t} -> {target}"
+                        )
+
+        for operand in expr.operands:
+            validate_semantic_expression(operand)
+
+def get_expression_type(expr):
+    
+    # p1, p2, etc.
+    if isinstance(expr, Identifier):
+
+        reference = reference_table.get(expr.name)
+
+
+        if isinstance(reference, PropertyReference):
+            return reference.unit
+
+        if isinstance(reference, PropertyNode):
+            return reference.semantic_id
+
+        if isinstance(reference, SMCReference):
+            return reference.unit
+        
+        if (isinstance(reference, PortNode)):
+            th = get_expression_type(Identifier(name = reference.reference.path[0]))
+            return get_expression_type(Identifier(name = reference.reference.path[0]))
+
+        if reference is None:
+            raise Exception(
+                f"Unknown identifier {expr.name}"
+            )
+        
+
+    # 10@QUDT:K
+    elif isinstance(expr, QualifiedLiteral):
+
+        return expr.semantic_id
+
+
+    # 10
+    elif isinstance(expr, Literal):
+
+        return None
+
+    elif isinstance(expr, Operation):
+
+        if expr.operator in ["lessS", "greatS", "lessES", "greatES"]:
+            return "BOOL"
+
+        elif expr.operator in ["andS", "orS", "notS"]:
+            return "BOOL"
+
+        elif expr.operator in ["addS", "subS", "mulS", "divS"]:
+            return get_expression_type(expr.operands[0])
+
+
+    return None

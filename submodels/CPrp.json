@@ -8,7 +8,7 @@
             "modelType": {
                 "name": "Property"
             },
-            "valueType": "xs:double",
+            "valueType": "xs:float",
             "value": "0.2",
 			"semanticId": {
 			    "keys": [
@@ -24,7 +24,7 @@
 		    "modelType": {
 		        "name": "Property"
 		    },
-		    "valueType": "xs:double",
+		    "valueType": "xs:float",
 		    "value": "0.6",
 			"semanticId": {
 			    "keys": [
@@ -40,7 +40,7 @@
 		    "modelType": {
 		        "name": "Property"
 		    },
-		    "valueType": "xs:double",
+		    "valueType": "xs:float",
 		    "value": "0.9",
 			"semanticId": {
 			    "keys": [
@@ -56,23 +56,39 @@
 		    "modelType": {
 		        "name": "Property"
 		    },
-		    "valueType": "xs:double",
-		    "value": "6.5"
+		    "valueType": "xs:float",
+		    "value": "6.5",
+			"semanticId": {
+			    "keys": [
+			        {
+			            "type": "GlobalReference",
+			            "value": "http://qudt.org/vocab/quantitykind/Acidity"
+			        }
+			    ]
+			}			
 		},
 		{
 		    "idShort": "pHMax",
 		    "modelType": {
 		        "name": "Property"
 		    },
-		    "valueType": "xs:double",
-		    "value": "7.5"
+		    "valueType": "xs:float",
+		    "value": "7.5",
+			"semanticId": {
+			    "keys": [
+			        {
+			            "type": "GlobalReference",
+			            "value": "http://qudt.org/vocab/quantitykind/Acidity"
+			        }
+			    ]
+			}			
 		},
 		{
 		    "idShort": "Start",
 		    "modelType": {
 		        "name": "Property"
 		    },
-		    "valueType": "xs:double",
+		    "valueType": "xs:float",
 		    "value": "Yes"
 		}
     ]

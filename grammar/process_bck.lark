@@ -1,13 +1,17 @@
 start: specification
 
-?specification: "Specification" IDENTIFIER "{" reference_decl* process+ "}"
+?specification: "Specification" IDENTIFIER "{" repository_decl? start_terminal_decl reference_decl* process+ "}"
 
 reference_decl: "Ref" ELEMENT_TYPE IDENTIFIER "=" reference_value ";"
 reference_value: STRING | reference_path
 
+repository_decl: "Repository" "=" STRING ";"
+
+start_terminal_decl: "StartTerminal" "=" "[" IDENTIFIER "]"  ";"
+
 process: "Process"  IDENTIFIER "{" interface_decl?  body_decl? evolution_decl? "}"
 
-interface_decl: "Interface" "{" terminal_decl* port_decl* predicate_decl* property_declaration* range_declaration* "}"
+interface_decl: "Interface" "{" terminal_decl* port_decl* predicate_decl* elem_declaration* submodel_declaration* "}"
 body_decl: "Body" "{" statement* "}"
 evolution_decl: "Evolution" "{"  "}"
 
@@ -19,8 +23,8 @@ port_reference: "=" reference_path
 
 predicate_decl: "Predicate" IDENTIFIER  "->" IDENTIFIER "{" expression "}"
 
-?expression: boolean_expression | arithmetic_expression | literal | qualified_identifier | relational_expression 
-?boolean_expression: BOOLEAN_OPERATOR "(" expression_list ")" |  UNARY_BOOLEAN_OPERATOR "(" expression ")"
+expression: boolean_expression | arithmetic_expression | literal | qualified_identifier | relational_expression | qualified_literal
+boolean_expression: BOOLEAN_OPERATOR "(" expression_list ")" |  UNARY_BOOLEAN_OPERATOR "(" expression ")"
 relational_expression: RELATIONAL_OPERATOR "(" expression_list ")"
 arithmetic_expression: ARITHMETIC_OPERATOR "(" expression_list ")"
 
@@ -31,9 +35,13 @@ qualified_literal: NUMBER "@" IDENTIFIER ":" IDENTIFIER
 
 statement: assignment_stmt | if_stmt | foreach_stmt
 
-
+elem_declaration: property_declaration | range_declaration | smc_declaration 
 property_declaration: PROPERTY IDENTIFIER "= "  NEW PROPERTY "(" STRING "," STRING "," STRING ")" ";"
-range_declaration: RANGE IDENTIFIER "= "  NEW  RANGE "(" STRING "," STRING "," STRING ")" ";"
+range_declaration: RANGE IDENTIFIER "= "  NEW  RANGE "(" STRING "," STRING "," STRING "," STRING ")" ";"
+smc_declaration: SMC IDENTIFIER "=" NEW SMC  "{" member_list* "}" ";"
+submodel_declaration: SUBMODEL IDENTIFIER "=" NEW SUBMODEL  "{" member_list* "}" ";"
+member_list: submodel_element ("," submodel_element)*
+?submodel_element: elem_declaration | IDENTIFIER 
 
 semantic_ref: IDENTIFIER ":" IDENTIFIER
 

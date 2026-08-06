@@ -1,7 +1,9 @@
 Specification CSTR {
-
+StartTerminal =[q0];
+Repository="example.com";
 Ref Submodel DEXPI="Q1NUUlByb3A=";
 Ref Submodel CPrp="Q1NUUlByb3A=";
+Ref SMC VA1 = DEXPI.ActuatingFunctions.VA_CV_001;
 Ref SMC VA2 = DEXPI.ActuatingFunctions.VA_CV_002;
 Ref SMC VA3 = DEXPI.ActuatingFunctions.VA_CV_003;
 Ref SMC VA4 = DEXPI.ActuatingFunctions.VA_CV_004;
@@ -25,45 +27,38 @@ Process q3 {
         Port Input LS = LI;
 		Port Input pH = AT;
 
-        Port Input LS1 = LS1;
-        Port Input LS2 = LS2;
-        Port Input LS3 = LS3;                
-		Port Input pH = pHMin;
-		Port Input pH = pHMax;
+        Port Input ls2 = LS2;
+        Port Input ls3 = LS3;                
+		Port Input phMin = pHMin;
+		Port Input phMax = pHMax;
 		
-
-		Port Output VA2 = VA2;
-		Port Output VA3 = VA3;
-		Port Output VA4 = VA4;
+		Port Output va1 = VA1;
+		Port Output va2 = VA2;
+		Port Output va3 = VA3;
+		Port Output va4 = VA4;
 
 		Predicate P4 -> EP5 {
-			orS(lessES(LS, LS2), 
+			orS(lessES(LS, ls2), 
 		greatES(LS, LS3))
 			}
 		Predicate P5 -> EP6 {
 		notS(orS(lessS(pH, pHMin), greatS(pH, pHMax)))
 		}
-		Property p1 = new Property("xs:decimal","QUDT:K","2");
-		Property p2 = new Property("xs:decimal","QUDT:K","10");
     }
 
 
     Body {
-    		assign(p2,add(p1,p2));
-    		assign(p1,mul(p1,p2));
-    		assign(p1,div(p1,p2));
-    		assign(p1,sub(p1,p2));
-            IF (orS(greatES(LS, LS3),lessES(LS,LS1)))
-            THEN
-				assignS(VA4,True);
-                assignS(VA2,False);
-
-            END_IF;
-			IF (notS(orS(lessS(pH,pHMin), greatS(pH,pHMax))))
-            THEN
-				assignS(VA3,True);
-                assignS(VA2,False);
-            END_IF;
+			IF (greatES(LS,ls3)) 
+			THEN
+				assign(va2,False);
+				assign(va4,True);
+			END_IF;
+			IF  (andS( greatES( pH, phMin ), lessES(pH, phMax)))
+			THEN
+				assign(va2,False);
+				assign(va1,False);
+				assign(va3,True);
+			END_IF;
     }
 
 }

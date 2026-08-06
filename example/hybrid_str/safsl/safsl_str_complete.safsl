@@ -1,0 +1,345 @@
+Specification STR_P {
+
+    Repository="example.com";
+
+    StartTerminal=[START];
+
+
+    // AAS Submodel References
+
+    Ref Submodel DEXPI="REVYUEk=";
+    Ref Submodel ECAD="RUNBRA==";
+    Ref Submodel STRProp="U1RSUHJvcA==";
+
+
+    // Asset References
+
+    Ref SMC LT=AFS.PIF_LT_01;
+    Ref SMC AT=AFS.PIF_AT_01;
+
+    Ref SMC VA1=AFS.VA_CV_001;
+    Ref SMC VA2=AFS.VA_CV_002;
+    Ref SMC VA3=AFS.VA_CV_003;
+    Ref SMC VA4=AFS.VA_CV_004;
+
+
+
+    // Process Parameters
+
+    Property LS1=CPrp.LS1;
+    Property LS2=CPrp.LS2;
+    Property LS3=CPrp.LS3;
+
+    Property pHMin=CPrp.pHMin;
+    Property pHMax=CPrp.pHMax;
+
+
+
+    //--------------------------------------------------
+    // q0 : Idle
+    //--------------------------------------------------
+
+    Process q0 {
+
+        Interface {
+
+            Terminal Input START;
+            Terminal Output EP1;
+
+
+            Port Output va1=VA1;
+            Port Output va2=VA2;
+            Port Output va3=VA3;
+            Port Output va4=VA4;
+
+        }
+
+
+        Body {
+
+            assign(va1,False);
+            assign(va2,False);
+            assign(va3,False);
+            assign(va4,False);
+
+        }
+
+    }
+
+
+
+    //--------------------------------------------------
+    // q1 : Filling
+    //--------------------------------------------------
+
+    Process q1 {
+
+        Interface {
+
+            Terminal Input EP1;
+            Terminal Output EP2;
+
+
+            Port Input LS=LT;
+            Port Input LS2=LS2;
+
+
+            Port Output va1=VA1;
+            Port Output va2=VA2;
+            Port Output va3=VA3;
+            Port Output va4=VA4;
+
+
+            Predicate P1 -> EP2 {
+
+                greatES(LS,LS2)
+
+            }
+
+        }
+
+
+        Body {
+
+            assign(va1,True);
+            assign(va2,False);
+            assign(va3,False);
+            assign(va4,False);
+
+        }
+
+    }
+
+
+
+
+    //--------------------------------------------------
+    // q2 : Mixing
+    //--------------------------------------------------
+
+    Process q2 {
+
+        Interface {
+
+            Terminal Input EP2;
+            Terminal Output EP3;
+
+
+            Port Input pH=AT;
+            Port Input pHMin=pHMin;
+
+
+            Port Output va1=VA1;
+            Port Output va2=VA2;
+            Port Output va3=VA3;
+            Port Output va4=VA4;
+
+
+            Predicate P2 -> EP3 {
+
+                lessES(pH,pHMin)
+
+            }
+
+        }
+
+
+        Body {
+
+            assign(va1,False);
+            assign(va2,True);
+            assign(va3,False);
+            assign(va4,False);
+
+        }
+
+    }
+
+
+
+
+    //--------------------------------------------------
+    // q3 : Neutralization
+    //--------------------------------------------------
+
+    Process q3 {
+
+        Interface {
+
+            Terminal Input EP3;
+
+            Terminal Output EP4;
+            Terminal Output EP5;
+
+
+
+            Port Input LS=LT;
+            Port Input pH=AT;
+
+
+            Port Input LS3=LS3;
+
+            Port Input pHMin=pHMin;
+            Port Input pHMax=pHMax;
+
+
+
+            Port Output va1=VA1;
+            Port Output va2=VA2;
+            Port Output va3=VA3;
+            Port Output va4=VA4;
+
+
+
+            Predicate P4 -> EP4 {
+
+                greatES(LS,LS3)
+
+            }
+
+
+
+            Predicate P5 -> EP5 {
+
+                andS(
+                    greatES(pH,pHMin),
+                    lessES(pH,pHMax)
+                )
+
+            }
+
+        }
+
+
+
+        Body {
+
+
+            IF(greatES(LS,LS3)) THEN
+
+                assign(va2,False);
+                assign(va4,True);
+
+            END_IF;
+
+
+
+            IF(andS(
+                greatES(pH,pHMin),
+                lessES(pH,pHMax)
+            )) THEN
+
+                assign(va1,False);
+                assign(va2,False);
+                assign(va3,True);
+
+            END_IF;
+
+
+        }
+
+
+        Evolution {
+
+            // Continuous dynamics
+
+        }
+
+    }
+
+
+
+
+    //--------------------------------------------------
+    // q4 : Partial Discharge
+    //--------------------------------------------------
+
+    Process q4 {
+
+        Interface {
+
+            Terminal Input EP4;
+            Terminal Output EP2;
+
+
+            Port Input LS=LT;
+            Port Input LS2=LS2;
+
+
+            Port Output va1=VA1;
+            Port Output va2=VA2;
+            Port Output va3=VA3;
+            Port Output va4=VA4;
+
+
+
+            Predicate P6 -> EP2 {
+
+                lessES(LS,LS2)
+
+            }
+
+        }
+
+
+
+        Body {
+
+            assign(va1,False);
+            assign(va2,False);
+            assign(va3,False);
+            assign(va4,True);
+
+        }
+
+    }
+
+
+
+
+
+    //--------------------------------------------------
+    // q5 : Complete Discharge
+    //--------------------------------------------------
+
+    Process q5 {
+
+        Interface {
+
+            Terminal Input EP5;
+            Terminal Output START;
+
+
+            Port Input LS=LT;
+            Port Input LS1=LS1;
+
+
+            Port Output va1=VA1;
+            Port Output va2=VA2;
+            Port Output va3=VA3;
+            Port Output va4=VA4;
+
+
+
+            Predicate P7 -> START {
+
+                lessES(LS,LS1)
+
+            }
+
+        }
+
+
+
+        Body {
+
+            assign(va1,False);
+            assign(va2,False);
+            assign(va3,True);
+            assign(va4,False);
+
+        }
+
+    }
+
+}
