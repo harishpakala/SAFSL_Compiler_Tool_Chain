@@ -13,8 +13,16 @@ SAFSL Compiler Tool Chain (Beta Version)
 <strong>python3.12 app.py</strong> <br/>
 
 ## STR Simulation
-Within example/hybrid_str/[simulate.py](https://github.com/harishpakala/SAFSL_Compiler_Tool_Chain/blob/main/example/hybrid_str/simulate.py)  <br/>
-<strong>python3.12 simulate.py</strong> <br/>
+
+Within example/hybrid_str <br/>
+
+<strong>python3.12 [simulate.py](https://github.com/harishpakala/SAFSL_Compiler_Tool_Chain/blob/main/example/hybrid_str/simulate.py) </strong> <br/>
+
+<strong>Simulation Trace [simulation_trace.log](https://github.com/harishpakala/SAFSL_Compiler_Tool_Chain/blob/main/example/hybrid_str/simulation_trace.log) </strong> <br/>
+
+<strong>Tank Level in Volume [liquidlevel_simulation.png](https://github.com/harishpakala/SAFSL_Compiler_Tool_Chain/blob/main/example/hybrid_str/liquidlevel_simulation.png) </strong> <br/>
+
+<strong>pH Simulation graph [ph_simulation.png](https://github.com/harishpakala/SAFSL_Compiler_Tool_Chain/blob/main/example/hybrid_str/ph_simulation.png) </strong> <br/>
 
 ## Issues
 If you want to request new features or report bug [submit a new issue](https://github.com/harishpakala/SAFSL_Compiler_Tool_Chain/issues/new)
