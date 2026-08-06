@@ -1,0 +1,352 @@
+
+====================================
+Mode: q1_FILLING
+Entry time : 0.000 s
+Exit time  : 80.001 s
+Duration   : 80.001 s
+Trigger    : Liquid level reached LS2
+Volume     : 0.600 m3
+pH         : 1.301
+Transition : q1_FILLING --> q2_MIXING
+
+Actuators after transition:
+VA-CV-001 HCl       : OPEN
+VA-CV-002 NaOH      : CLOSED
+VA-CV-003 Discharge : CLOSED
+VA-CV-004 Partial   : CLOSED
+Stirrer             : OFF
+
+====================================
+Mode: q2_MIXING
+Entry time : 80.001 s
+Exit time  : 80.002 s
+Duration   : 0.001 s
+Trigger    : pH below target range
+Volume     : 0.600 m3
+pH         : 1.301
+Transition : q2_MIXING --> q3_NEUTRALIZATION
+
+Actuators after transition:
+VA-CV-001 HCl       : CLOSED
+VA-CV-002 NaOH      : CLOSED
+VA-CV-003 Discharge : CLOSED
+VA-CV-004 Partial   : CLOSED
+Stirrer             : ON
+
+====================================
+Mode: q3_NEUTRALIZATION
+Entry time : 80.002 s
+Exit time  : 117.502 s
+Duration   : 37.500 s
+Trigger    : Liquid level reached LS3
+Volume     : 0.900 m3
+pH         : 1.505
+Transition : q3_NEUTRALIZATION --> q4_PARTIAL_DISCHARGE
+
+Actuators after transition:
+VA-CV-001 HCl       : OPEN
+VA-CV-002 NaOH      : OPEN
+VA-CV-003 Discharge : CLOSED
+VA-CV-004 Partial   : CLOSED
+Stirrer             : ON
+
+====================================
+Mode: q4_PARTIAL_DISCHARGE
+Entry time : 117.502 s
+Exit time  : 167.505 s
+Duration   : 50.003 s
+Trigger    : Liquid level decreased to LS2
+Volume     : 0.600 m3
+pH         : 1.505
+Transition : q4_PARTIAL_DISCHARGE --> q2_MIXING
+
+Actuators after transition:
+VA-CV-001 HCl       : CLOSED
+VA-CV-002 NaOH      : CLOSED
+VA-CV-003 Discharge : CLOSED
+VA-CV-004 Partial   : OPEN
+Stirrer             : ON
+
+====================================
+Mode: q2_MIXING
+Entry time : 167.505 s
+Exit time  : 167.506 s
+Duration   : 0.001 s
+Trigger    : pH below target range
+Volume     : 0.600 m3
+pH         : 1.505
+Transition : q2_MIXING --> q3_NEUTRALIZATION
+
+Actuators after transition:
+VA-CV-001 HCl       : CLOSED
+VA-CV-002 NaOH      : CLOSED
+VA-CV-003 Discharge : CLOSED
+VA-CV-004 Partial   : CLOSED
+Stirrer             : ON
+
+====================================
+Mode: q3_NEUTRALIZATION
+Entry time : 167.506 s
+Exit time  : 205.008 s
+Duration   : 37.502 s
+Trigger    : Liquid level reached LS3
+Volume     : 0.900 m3
+pH         : 1.727
+Transition : q3_NEUTRALIZATION --> q4_PARTIAL_DISCHARGE
+
+Actuators after transition:
+VA-CV-001 HCl       : OPEN
+VA-CV-002 NaOH      : OPEN
+VA-CV-003 Discharge : CLOSED
+VA-CV-004 Partial   : CLOSED
+Stirrer             : ON
+
+====================================
+Mode: q4_PARTIAL_DISCHARGE
+Entry time : 205.008 s
+Exit time  : 255.011 s
+Duration   : 50.003 s
+Trigger    : Liquid level decreased to LS2
+Volume     : 0.600 m3
+pH         : 1.727
+Transition : q4_PARTIAL_DISCHARGE --> q2_MIXING
+
+Actuators after transition:
+VA-CV-001 HCl       : CLOSED
+VA-CV-002 NaOH      : CLOSED
+VA-CV-003 Discharge : CLOSED
+VA-CV-004 Partial   : OPEN
+Stirrer             : ON
+
+====================================
+Mode: q2_MIXING
+Entry time : 255.011 s
+Exit time  : 255.012 s
+Duration   : 0.001 s
+Trigger    : pH below target range
+Volume     : 0.600 m3
+pH         : 1.727
+Transition : q2_MIXING --> q3_NEUTRALIZATION
+
+Actuators after transition:
+VA-CV-001 HCl       : CLOSED
+VA-CV-002 NaOH      : CLOSED
+VA-CV-003 Discharge : CLOSED
+VA-CV-004 Partial   : CLOSED
+Stirrer             : ON
+
+====================================
+Mode: q3_NEUTRALIZATION
+Entry time : 255.012 s
+Exit time  : 292.515 s
+Duration   : 37.503 s
+Trigger    : Liquid level reached LS3
+Volume     : 0.900 m3
+pH         : 1.982
+Transition : q3_NEUTRALIZATION --> q4_PARTIAL_DISCHARGE
+
+Actuators after transition:
+VA-CV-001 HCl       : OPEN
+VA-CV-002 NaOH      : OPEN
+VA-CV-003 Discharge : CLOSED
+VA-CV-004 Partial   : CLOSED
+Stirrer             : ON
+
+====================================
+Mode: q4_PARTIAL_DISCHARGE
+Entry time : 292.515 s
+Exit time  : 342.519 s
+Duration   : 50.004 s
+Trigger    : Liquid level decreased to LS2
+Volume     : 0.600 m3
+pH         : 1.982
+Transition : q4_PARTIAL_DISCHARGE --> q2_MIXING
+
+Actuators after transition:
+VA-CV-001 HCl       : CLOSED
+VA-CV-002 NaOH      : CLOSED
+VA-CV-003 Discharge : CLOSED
+VA-CV-004 Partial   : OPEN
+Stirrer             : ON
+
+====================================
+Mode: q2_MIXING
+Entry time : 342.519 s
+Exit time  : 342.520 s
+Duration   : 0.001 s
+Trigger    : pH below target range
+Volume     : 0.600 m3
+pH         : 1.982
+Transition : q2_MIXING --> q3_NEUTRALIZATION
+
+Actuators after transition:
+VA-CV-001 HCl       : CLOSED
+VA-CV-002 NaOH      : CLOSED
+VA-CV-003 Discharge : CLOSED
+VA-CV-004 Partial   : CLOSED
+Stirrer             : ON
+
+====================================
+Mode: q3_NEUTRALIZATION
+Entry time : 342.520 s
+Exit time  : 380.023 s
+Duration   : 37.503 s
+Trigger    : Liquid level reached LS3
+Volume     : 0.900 m3
+pH         : 2.313
+Transition : q3_NEUTRALIZATION --> q4_PARTIAL_DISCHARGE
+
+Actuators after transition:
+VA-CV-001 HCl       : OPEN
+VA-CV-002 NaOH      : OPEN
+VA-CV-003 Discharge : CLOSED
+VA-CV-004 Partial   : CLOSED
+Stirrer             : ON
+
+====================================
+Mode: q4_PARTIAL_DISCHARGE
+Entry time : 380.023 s
+Exit time  : 430.027 s
+Duration   : 50.004 s
+Trigger    : Liquid level decreased to LS2
+Volume     : 0.600 m3
+pH         : 2.313
+Transition : q4_PARTIAL_DISCHARGE --> q2_MIXING
+
+Actuators after transition:
+VA-CV-001 HCl       : CLOSED
+VA-CV-002 NaOH      : CLOSED
+VA-CV-003 Discharge : CLOSED
+VA-CV-004 Partial   : OPEN
+Stirrer             : ON
+
+====================================
+Mode: q2_MIXING
+Entry time : 430.027 s
+Exit time  : 430.028 s
+Duration   : 0.001 s
+Trigger    : pH below target range
+Volume     : 0.600 m3
+pH         : 2.313
+Transition : q2_MIXING --> q3_NEUTRALIZATION
+
+Actuators after transition:
+VA-CV-001 HCl       : CLOSED
+VA-CV-002 NaOH      : CLOSED
+VA-CV-003 Discharge : CLOSED
+VA-CV-004 Partial   : CLOSED
+Stirrer             : ON
+
+====================================
+Mode: q3_NEUTRALIZATION
+Entry time : 430.028 s
+Exit time  : 467.531 s
+Duration   : 37.503 s
+Trigger    : Liquid level reached LS3
+Volume     : 0.900 m3
+pH         : 2.935
+Transition : q3_NEUTRALIZATION --> q4_PARTIAL_DISCHARGE
+
+Actuators after transition:
+VA-CV-001 HCl       : OPEN
+VA-CV-002 NaOH      : OPEN
+VA-CV-003 Discharge : CLOSED
+VA-CV-004 Partial   : CLOSED
+Stirrer             : ON
+
+====================================
+Mode: q4_PARTIAL_DISCHARGE
+Entry time : 467.531 s
+Exit time  : 517.535 s
+Duration   : 50.004 s
+Trigger    : Liquid level decreased to LS2
+Volume     : 0.600 m3
+pH         : 2.935
+Transition : q4_PARTIAL_DISCHARGE --> q2_MIXING
+
+Actuators after transition:
+VA-CV-001 HCl       : CLOSED
+VA-CV-002 NaOH      : CLOSED
+VA-CV-003 Discharge : CLOSED
+VA-CV-004 Partial   : OPEN
+Stirrer             : ON
+
+====================================
+Mode: q2_MIXING
+Entry time : 517.535 s
+Exit time  : 517.536 s
+Duration   : 0.001 s
+Trigger    : pH below target range
+Volume     : 0.600 m3
+pH         : 2.935
+Transition : q2_MIXING --> q3_NEUTRALIZATION
+
+Actuators after transition:
+VA-CV-001 HCl       : CLOSED
+VA-CV-002 NaOH      : CLOSED
+VA-CV-003 Discharge : CLOSED
+VA-CV-004 Partial   : CLOSED
+Stirrer             : ON
+
+====================================
+Mode: q3_NEUTRALIZATION
+Entry time : 517.536 s
+Exit time  : 531.472 s
+Duration   : 13.936 s
+Trigger    : pH reached neutralization target
+Volume     : 0.711 m3
+pH         : 6.557
+Transition : q3_NEUTRALIZATION --> q5_COMPLETE_DISCHARGE
+
+Actuators after transition:
+VA-CV-001 HCl       : OPEN
+VA-CV-002 NaOH      : OPEN
+VA-CV-003 Discharge : CLOSED
+VA-CV-004 Partial   : CLOSED
+Stirrer             : ON
+
+====================================
+Mode: q5_COMPLETE_DISCHARGE
+Entry time : 531.472 s
+Exit time  : 616.720 s
+Duration   : 85.248 s
+Trigger    : Liquid level reached LS1
+Volume     : 0.200 m3
+pH         : 6.684
+Transition : q5_COMPLETE_DISCHARGE --> q0_IDLE
+
+Actuators after transition:
+VA-CV-001 HCl       : CLOSED
+VA-CV-002 NaOH      : CLOSED
+VA-CV-003 Discharge : OPEN
+VA-CV-004 Partial   : CLOSED
+Stirrer             : OFF
+
+
+========== FINAL RESULT ==========
+Final mode: q0_IDLE
+Maximum pH: 6.683534561517039
+Time of maximum pH: 531.4719999943443
+Final volume: 0.19999000001500267
+
+
+========== MODE SUMMARY ==========
+q1_FILLING --> q2_MIXING | duration=80.001s | trigger=Liquid level reached LS2 | V=0.600m3 | pH=1.301
+q2_MIXING --> q3_NEUTRALIZATION | duration=0.001s | trigger=pH below target range | V=0.600m3 | pH=1.301
+q3_NEUTRALIZATION --> q4_PARTIAL_DISCHARGE | duration=37.500s | trigger=Liquid level reached LS3 | V=0.900m3 | pH=1.505
+q4_PARTIAL_DISCHARGE --> q2_MIXING | duration=50.003s | trigger=Liquid level decreased to LS2 | V=0.600m3 | pH=1.505
+q2_MIXING --> q3_NEUTRALIZATION | duration=0.001s | trigger=pH below target range | V=0.600m3 | pH=1.505
+q3_NEUTRALIZATION --> q4_PARTIAL_DISCHARGE | duration=37.502s | trigger=Liquid level reached LS3 | V=0.900m3 | pH=1.727
+q4_PARTIAL_DISCHARGE --> q2_MIXING | duration=50.003s | trigger=Liquid level decreased to LS2 | V=0.600m3 | pH=1.727
+q2_MIXING --> q3_NEUTRALIZATION | duration=0.001s | trigger=pH below target range | V=0.600m3 | pH=1.727
+q3_NEUTRALIZATION --> q4_PARTIAL_DISCHARGE | duration=37.503s | trigger=Liquid level reached LS3 | V=0.900m3 | pH=1.982
+q4_PARTIAL_DISCHARGE --> q2_MIXING | duration=50.004s | trigger=Liquid level decreased to LS2 | V=0.600m3 | pH=1.982
+q2_MIXING --> q3_NEUTRALIZATION | duration=0.001s | trigger=pH below target range | V=0.600m3 | pH=1.982
+q3_NEUTRALIZATION --> q4_PARTIAL_DISCHARGE | duration=37.503s | trigger=Liquid level reached LS3 | V=0.900m3 | pH=2.313
+q4_PARTIAL_DISCHARGE --> q2_MIXING | duration=50.004s | trigger=Liquid level decreased to LS2 | V=0.600m3 | pH=2.313
+q2_MIXING --> q3_NEUTRALIZATION | duration=0.001s | trigger=pH below target range | V=0.600m3 | pH=2.313
+q3_NEUTRALIZATION --> q4_PARTIAL_DISCHARGE | duration=37.503s | trigger=Liquid level reached LS3 | V=0.900m3 | pH=2.935
+q4_PARTIAL_DISCHARGE --> q2_MIXING | duration=50.004s | trigger=Liquid level decreased to LS2 | V=0.600m3 | pH=2.935
+q2_MIXING --> q3_NEUTRALIZATION | duration=0.001s | trigger=pH below target range | V=0.600m3 | pH=2.935
+q3_NEUTRALIZATION --> q5_COMPLETE_DISCHARGE | duration=13.936s | trigger=pH reached neutralization target | V=0.711m3 | pH=6.557
+q5_COMPLETE_DISCHARGE --> q0_IDLE | duration=85.248s | trigger=Liquid level reached LS1 | V=0.200m3 | pH=6.684
