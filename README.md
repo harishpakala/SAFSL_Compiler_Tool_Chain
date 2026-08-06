@@ -12,6 +12,10 @@ SAFSL Compiler Tool Chain (Beta Version)
 ## Running 
 <strong>python3.12 app.py</strong> <br/>
 
+## STR Simulation
+Within example/hybrid_str run [simulate.py]((https://github.com/harishpakala/SAFSL_Compiler_Tool_Chain/blob/main/example/hybrid_str/simulate.py)
+<strong>python3.12 simulate.py</strong> <br/>
+
 ## Issues
 If you want to request new features or report bug [submit a new issue](https://github.com/harishpakala/SAFSL_Compiler_Tool_Chain/issues/new)
 
