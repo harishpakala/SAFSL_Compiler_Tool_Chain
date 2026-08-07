@@ -32,3 +32,5 @@ If you want to request new features or report bug [submit a new issue](https://g
 SAFSL Compiler Tool Chain is Licensed under Apache 2.0
 * lark MIT License <br />
 * lxml BSD-3-Clause <br />
+* lark MIT License <br />
+* matplotlib Python Software Foundation License <br />
