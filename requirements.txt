@@ -4,4 +4,4 @@ matplotlib==3.11.1
 rdflib==7.6.0
 pyshacl==0.31.0
 aas-core3.1==1.0.0
-requests=2.34.2
+requests==2.34.2
