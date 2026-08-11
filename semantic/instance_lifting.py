@@ -7,20 +7,6 @@ AAS Instance Lifting
 
 Transforms an AAS Submodel Instance into RDF instance data.
 '''
-"""
-instance_lifting.py
-
-Lifts an AAS Submodel instance into RDF and validates it
-against the SHACL shapes extracted from the corresponding
-template graph stored in GraphDB.
-
-Template:
-    https://example.org/sm/dexpi
-
-Instance:
-    https://example.org/sm/dexpi25
-"""
-
 import json
 import base64
 import hashlib
@@ -42,11 +28,6 @@ from pyshacl import validate
 import aas_core3_1.types as aas_types
 import aas_core3_1.jsonization as aas_jsonization
 
-
-# ============================================================
-# Namespaces
-# ============================================================
-
 semanticDict = {}
 
 semanticDict["AAS"] = Namespace("https://example.org/aas/")
@@ -58,10 +39,6 @@ semanticDict["SH"] = Namespace("http://www.w3.org/ns/shacl#")
 semanticDict["QUDT"] = Namespace("http://qudt.org/schema/qudt/")
 semanticDict["UNIT"] = Namespace("http://qudt.org/vocab/unit/")
 
-
-# ============================================================
-# Configuration
-# ============================================================
 
 BASE_URI = "http://org.example.com"
 
@@ -81,10 +58,6 @@ GRAPHDB_UPDATE_HEADERS = {
     "Content-Type": "application/sparql-update"
 }
 
-
-# ============================================================
-# URI utilities
-# ============================================================
 
 def sha256(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
@@ -133,10 +106,6 @@ def predicate_for_relation(id_short: str) -> URIRef:
     )
 
 
-# ============================================================
-# AAS helpers
-# ============================================================
-
 def get_onto_concept(element):
     """
     Return the value of an ontoConcept qualifier.
@@ -175,10 +144,6 @@ def map_xsd_datatype(value_type):
         XSD.string
     )
 
-
-# ============================================================
-# GraphDB
-# ============================================================
 
 def fetch_template_graph(template_submodel_id: str) -> Graph:
     """
@@ -232,11 +197,6 @@ def fetch_template_graph(template_submodel_id: str) -> Graph:
 
     return template_graph
 
-
-# ============================================================
-# SHACL extraction
-# ============================================================
-
 def extract_shacl_graph(template_graph: Graph) -> Graph:
     """
     Extract only SHACL-related triples from the template graph.
@@ -276,10 +236,6 @@ def extract_shacl_graph(template_graph: Graph) -> Graph:
 
     shacl_graph = Graph()
 
-    # --------------------------------------------------------
-    # Bind namespaces
-    # --------------------------------------------------------
-
     shacl_graph.bind(
         "sh",
         SH
@@ -300,9 +256,6 @@ def extract_shacl_graph(template_graph: Graph) -> Graph:
         semanticDict["UNIT"]
     )
 
-    # --------------------------------------------------------
-    # Find NodeShapes
-    # --------------------------------------------------------
 
     node_shapes = set(
         template_graph.subjects(
@@ -315,10 +268,6 @@ def extract_shacl_graph(template_graph: Graph) -> Graph:
         f"Found {len(node_shapes)} SHACL NodeShape(s)"
     )
 
-    # --------------------------------------------------------
-    # Find PropertyShapes
-    # --------------------------------------------------------
-
     property_shapes = set(
         template_graph.subjects(
             RDF.type,
@@ -330,18 +279,11 @@ def extract_shacl_graph(template_graph: Graph) -> Graph:
         f"Found {len(property_shapes)} SHACL PropertyShape(s)"
     )
 
-    # --------------------------------------------------------
-    # Collect SHACL nodes
-    # --------------------------------------------------------
 
     shacl_nodes = (
         node_shapes
         | property_shapes
     )
-
-    # --------------------------------------------------------
-    # Copy all SHACL triples reachable from shapes
-    # --------------------------------------------------------
 
     queue = list(shacl_nodes)
     visited = set()
@@ -373,13 +315,6 @@ def extract_shacl_graph(template_graph: Graph) -> Graph:
                 # Follow blank nodes / SHACL nodes.
                 if obj not in visited:
                     queue.append(obj)
-
-    # --------------------------------------------------------
-    # Explicitly copy important SHACL triples
-    #
-    # This is useful because some SHACL properties point to
-    # OWL/AAS resources outside the SHACL namespace.
-    # --------------------------------------------------------
 
     important_predicates = {
         SH["targetClass"],
@@ -432,10 +367,6 @@ def extract_shacl_graph(template_graph: Graph) -> Graph:
     return shacl_graph
 
 
-# ============================================================
-# SHACL validation
-# ============================================================
-
 def validate_instance(
     data_graph: Graph,
     shacl_graph: Graph
@@ -473,11 +404,6 @@ def validate_instance(
     print(report_text)
 
     return False
-
-
-# ============================================================
-# Instance lifting
-# ============================================================
 
 def lift_elements(
     graph: Graph,
@@ -582,10 +508,6 @@ def lift_smc(
         parent_path
     )
 
-    # --------------------------------------------------------
-    # Instance type
-    # --------------------------------------------------------
-
     graph.add(
         (
             smc_uri,
@@ -603,10 +525,6 @@ def lift_smc(
             )
         )
     )
-
-    # --------------------------------------------------------
-    # OntoConcept
-    # --------------------------------------------------------
 
     onto_concept = get_onto_concept(
         smc_element
@@ -652,10 +570,6 @@ def lift_smc(
             smc_element.id_short
         )
 
-    # --------------------------------------------------------
-    # Parent -> child
-    # --------------------------------------------------------
-
     graph.add(
         (
             parent_node,
@@ -664,9 +578,6 @@ def lift_smc(
         )
     )
 
-    # --------------------------------------------------------
-    # Children
-    # --------------------------------------------------------
 
     lift_elements(
         graph,
@@ -867,10 +778,6 @@ def lift_relationship(
     )
 
 
-# ============================================================
-# Main instance lifting function
-# ============================================================
-
 def lift_instance(
     aas_submodel,
     domain: str,
@@ -901,9 +808,6 @@ def lift_instance(
         semanticDict["UNIT"]
     )
 
-    # --------------------------------------------------------
-    # Root instance
-    # --------------------------------------------------------
 
     root = compute_uri(
         aas_submodel.id
@@ -927,10 +831,6 @@ def lift_instance(
         )
     )
 
-    # --------------------------------------------------------
-    # Interval class
-    # --------------------------------------------------------
-
     graph.add(
         (
             semanticDict["AAS"].Interval,
@@ -949,9 +849,6 @@ def lift_instance(
         )
     )
 
-    # --------------------------------------------------------
-    # Lift elements
-    # --------------------------------------------------------
 
     lift_elements(
         graph,
@@ -963,10 +860,6 @@ def lift_instance(
 
     return graph
 
-
-# ============================================================
-# Push instance graph
-# ============================================================
 
 def push_instance_graph(
     graph: Graph,
@@ -1017,16 +910,8 @@ def push_instance_graph(
         f"{graph_uri}"
     )
 
-
-# ============================================================
-# Main
-# ============================================================
-
 if __name__ == "__main__":
 
-    # --------------------------------------------------------
-    # Files
-    # --------------------------------------------------------
 
     INSTANCE_FILE = "sample_dexpi.json"
 
@@ -1037,10 +922,6 @@ if __name__ == "__main__":
     )
 
     DOMAIN = "DEXPI"
-
-    # --------------------------------------------------------
-    # Read instance
-    # --------------------------------------------------------
 
     with open(
         INSTANCE_FILE,
@@ -1055,7 +936,7 @@ if __name__ == "__main__":
             model
         )
     )
-
+    print("JSON Serialization is completed Successfully")
     print()
     print("========================================")
     print("DEXPI INSTANCE LIFTING")
@@ -1066,22 +947,11 @@ if __name__ == "__main__":
         f"{instance_submodel.id}"
     )
 
-    # --------------------------------------------------------
-    # 1. Fetch template graph
-    # --------------------------------------------------------
-
-    print()
-    print(
-        "Fetching DEXPI template from GraphDB..."
-    )
+    print("Fetching DEXPI template from GraphDB...")
 
     template_graph = fetch_template_graph(
         TEMPLATE_ID
     )
-
-    # --------------------------------------------------------
-    # 2. Extract SHACL
-    # --------------------------------------------------------
 
     shacl_graph = extract_shacl_graph(
         template_graph
@@ -1103,10 +973,6 @@ if __name__ == "__main__":
         )
     )
 
-    # --------------------------------------------------------
-    # 3. Lift instance
-    # --------------------------------------------------------
-
     instance_graph = lift_instance(
         instance_submodel,
         DOMAIN,
@@ -1127,9 +993,6 @@ if __name__ == "__main__":
         )
     )
 
-    # --------------------------------------------------------
-    # 4. Validate instance against template
-    # --------------------------------------------------------
 
     conforms = validate_instance(
         instance_graph,
@@ -1145,10 +1008,6 @@ if __name__ == "__main__":
         )
 
         raise SystemExit(1)
-
-    # --------------------------------------------------------
-    # 5. Push only validated instance
-    # --------------------------------------------------------
 
     push_instance_graph(
         instance_graph,

@@ -1,43 +1,290 @@
 {
-  "idShort": "DEXPI",
-  "id": "urn:safsl:DEXPI",
+  "modelType": "Submodel",
+  "id": "https://example.org/sm/dexpi25",
+  "idShort": "DEXPI25",
+  "semanticId": {
+    "type": "ExternalReference",
+    "keys": [
+      {
+        "type": "GlobalReference",
+        "value": "https://example.org/smt/dexpi"
+      }
+    ]
+  },
   "submodelElements": [
     {
-      "idShort": "InstrumentationFunctions",
-      "modelType": {
-        "name": "SubmodelElementCollection"
-      },
+      "modelType": "SubmodelElementCollection",
+      "idShort": "Equipments",
       "value": [
         {
-          "idShort": "LI_01",
-          "modelType": {
-            "name": "SubmodelElementCollection"
-          },
+          "modelType": "SubmodelElementCollection",
+          "idShort": "K_101",
           "value": [
             {
-              "idShort": "LocalId",
-              "modelType": {
-                "name": "Property"
-              },
-              "valueType": "xs:double",
-              "value": "LT_01"
+              "modelType": "Property",
+              "idShort": "AssetIdentifier",
+              "valueType": "xs:string",
+              "value": "example.org/K_101"
             },
             {
-              "idShort": "AssetIdentifier",
-              "modelType": {
-                "name": "Property"
+              "modelType": "Property",
+              "idShort": "LocalId",
+              "valueType": "xs:string",
+              "value": "K_101"
+            }
+          ],
+          "qualifiers": [
+            {
+              "semanticId": {
+                "type": "ExternalReference",
+                "keys": [
+                  {
+                    "type": "GlobalReference",
+                    "value": "https://admin-shell.io/SubmodelTemplates/ontoConcept/1/0"
+                  }
+                ]
               },
-              "valueType": "xs:double",
-              "value": "example.org/LT_01"
+              "type": "ontoConcept",
+              "valueType": "xs:string",
+              "value": "Equipment"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "modelType": "SubmodelElementCollection",
+      "idShort": "ActuatingFunctions",
+      "value": [
+        {
+          "modelType": "SubmodelElementCollection",
+          "idShort": "VA_CV_001",
+          "value": [
+            {
+              "modelType": "Property",
+              "idShort": "AssetIdentifier",
+              "valueType": "xs:string",
+              "value": "example.org/VA_CV_001"
+            },
+            {
+              "modelType": "Property",
+              "idShort": "LocalId",
+              "valueType": "xs:string",
+              "value": "VA_CV_001"
             },
             {
               "idShort": "value",
-              "modelType": {
-                "name": "Property"
+              "modelType": "Property",
+              "valueType": "xs:boolean",
+              "value": "TRUE"
+            }
+          ],
+          "qualifiers": [
+            {
+              "semanticId": {
+                "type": "ExternalReference",
+                "keys": [
+                  {
+                    "type": "GlobalReference",
+                    "value": "https://admin-shell.io/SubmodelTemplates/ontoConcept/1/0"
+                  }
+                ]
               },
+              "type": "ontoConcept",
+              "valueType": "xs:string",
+              "value": "ActuatingFunction"
+            }
+          ]
+        },
+        {
+          "modelType": "SubmodelElementCollection",
+          "idShort": "VA_CV_002",
+          "value": [
+            {
+              "modelType": "Property",
+              "idShort": "AssetIdentifier",
+              "valueType": "xs:string",
+              "value": "example.org/VA_CV_002"
+            },
+            {
+              "modelType": "Property",
+              "idShort": "LocalId",
+              "valueType": "xs:string",
+              "value": "VA_CV_002"
+            },
+            {
+              "idShort": "value",
+              "modelType": "Property",
+              "valueType": "xs:boolean",
+              "value": "TRUE"
+            }
+          ],
+          "qualifiers": [
+            {
+              "semanticId": {
+                "type": "ExternalReference",
+                "keys": [
+                  {
+                    "type": "GlobalReference",
+                    "value": "https://admin-shell.io/SubmodelTemplates/ontoConcept/1/0"
+                  }
+                ]
+              },
+              "type": "ontoConcept",
+              "valueType": "xs:string",
+              "value": "ActuatingFunction"
+            }
+          ]
+        },
+        {
+          "modelType": "SubmodelElementCollection",
+          "idShort": "VA_CV_003",
+          "value": [
+            {
+              "modelType": "Property",
+              "idShort": "AssetIdentifier",
+              "valueType": "xs:string",
+              "value": "example.org/VA_CV_003"
+            },
+            {
+              "modelType": "Property",
+              "idShort": "LocalId",
+              "valueType": "xs:string",
+              "value": "VA_CV_003"
+            },
+            {
+              "idShort": "value",
+              "modelType": "Property",
+              "valueType": "xs:boolean",
+              "value": "TRUE"
+            }
+          ],
+          "qualifiers": [
+            {
+              "semanticId": {
+                "type": "ExternalReference",
+                "keys": [
+                  {
+                    "type": "GlobalReference",
+                    "value": "https://admin-shell.io/SubmodelTemplates/ontoConcept/1/0"
+                  }
+                ]
+              },
+              "type": "ontoConcept",
+              "valueType": "xs:string",
+              "value": "ActuatingFunction"
+            }
+          ]
+        },
+        {
+          "modelType": "SubmodelElementCollection",
+          "idShort": "VA_CV_004",
+          "value": [
+            {
+              "modelType": "Property",
+              "idShort": "AssetIdentifier",
+              "valueType": "xs:string",
+              "value": "example.org/VA_CV_004"
+            },
+            {
+              "modelType": "Property",
+              "idShort": "LocalId",
+              "valueType": "xs:string",
+              "value": "VA_CV_004"
+            },
+            {
+              "idShort": "value",
+              "modelType": "Property",
+              "valueType": "xs:boolean",
+              "value": "TRUE"
+            }
+          ],
+          "qualifiers": [
+            {
+              "semanticId": {
+                "type": "ExternalReference",
+                "keys": [
+                  {
+                    "type": "GlobalReference",
+                    "value": "https://admin-shell.io/SubmodelTemplates/ontoConcept/1/0"
+                  }
+                ]
+              },
+              "type": "ontoConcept",
+              "valueType": "xs:string",
+              "value": "ActuatingFunction"
+            }
+          ]
+        },
+        {
+          "modelType": "SubmodelElementCollection",
+          "idShort": "M_101",
+          "value": [
+            {
+              "modelType": "Property",
+              "idShort": "AssetIdentifier",
+              "valueType": "xs:string",
+              "value": "example.org/MTR_101"
+            },
+            {
+              "modelType": "Property",
+              "idShort": "LocalId",
+              "valueType": "xs:string",
+              "value": "M_101"
+            },
+            {
+              "idShort": "value",
+              "modelType": "Property",
+              "valueType": "xs:boolean",
+              "value": "TRUE"
+            }
+          ],
+          "qualifiers": [
+            {
+              "semanticId": {
+                "type": "ExternalReference",
+                "keys": [
+                  {
+                    "type": "GlobalReference",
+                    "value": "https://admin-shell.io/SubmodelTemplates/ontoConcept/1/0"
+                  }
+                ]
+              },
+              "type": "ontoConcept",
+              "valueType": "xs:string",
+              "value": "ActuatingFunction"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "modelType": "SubmodelElementCollection",
+      "idShort": "InstrumentationFunctions",
+      "value": [
+        {
+          "modelType": "SubmodelElementCollection",
+          "idShort": "LI_01",
+          "value": [
+            {
+              "modelType": "Property",
+              "idShort": "AssetIdentifier",
+              "valueType": "xs:string",
+              "value": "example.org/LT_01"
+            },
+            {
+              "modelType": "Property",
+              "idShort": "LocalId",
+              "valueType": "xs:string",
+              "value": "LT_01"
+            },
+            {
+              "idShort": "value",
+              "modelType": "Property",
               "valueType": "xs:float",
               "value": "0",
               "semanticId": {
+				"type": "ExternalReference",				
                 "keys": [
                   {
                     "type": "GlobalReference",
@@ -46,38 +293,47 @@
                 ]
               }
             }
+          ],
+          "qualifiers": [
+            {
+              "semanticId": {
+                "type": "ExternalReference",
+                "keys": [
+                  {
+                    "type": "GlobalReference",
+                    "value": "https://admin-shell.io/SubmodelTemplates/ontoConcept/1/0"
+                  }
+                ]
+              },
+              "type": "ontoConcept",
+              "valueType": "xs:string",
+              "value": "InstrumentationFunction"
+            }
           ]
         },
         {
+          "modelType": "SubmodelElementCollection",
           "idShort": "AT_01",
-          "modelType": {
-            "name": "SubmodelElementCollection"
-          },
           "value": [
             {
-              "idShort": "LocalId",
-              "modelType": {
-                "name": "Property"
-              },
-              "valueType": "xs:double",
-              "value": "AT_01"
-            },
-            {
+              "modelType": "Property",
               "idShort": "AssetIdentifier",
-              "modelType": {
-                "name": "Property"
-              },
-              "valueType": "xs:double",
+              "valueType": "xs:string",
               "value": "example.org/AT_01"
             },
             {
+              "modelType": "Property",
+              "idShort": "LocalId",
+              "valueType": "xs:string",
+              "value": "AT_01"
+            },
+            {
               "idShort": "value",
-              "modelType": {
-                "name": "Property"
-              },
+              "modelType": "Property",
               "valueType": "xs:float",
               "value": "0",
               "semanticId": {
+				"type": "ExternalReference",				
                 "keys": [
                   {
                     "type": "GlobalReference",
@@ -86,141 +342,21 @@
                 ]
               }
             }
-          ]
-        }
-      ]
-    },
-    {
-      "idShort": "ActuatingFunctions",
-      "modelType": {
-        "name": "SubmodelElementCollection"
-      },
-      "value": [
-        {
-          "idShort": "VA_CV_001",
-          "modelType": {
-            "name": "SubmodelElementCollection"
-          },
-          "value": [
+          ],
+          "qualifiers": [
             {
-              "idShort": "LocalId",
-              "modelType": {
-                "name": "Property"
+              "semanticId": {
+                "type": "ExternalReference",
+                "keys": [
+                  {
+                    "type": "GlobalReference",
+                    "value": "https://admin-shell.io/SubmodelTemplates/ontoConcept/1/0"
+                  }
+                ]
               },
-              "valueType": "xs:double",
-              "value": "VA_CV_001"
-            },
-            {
-              "idShort": "AssetIdentifier",
-              "modelType": {
-                "name": "Property"
-              },
-              "valueType": "xs:double",
-              "value": "example.org/VA-CV-001"
-            },
-            {
-              "idShort": "value",
-              "modelType": {
-                "name": "Property"
-              },
-              "valueType": "xs:boolean",
-              "value": "TRUE"
-            }
-          ]
-        },
-        {
-          "idShort": "VA_CV_002",
-          "modelType": {
-            "name": "SubmodelElementCollection"
-          },
-          "value": [
-            {
-              "idShort": "LocalId",
-              "modelType": {
-                "name": "Property"
-              },
-              "valueType": "xs:double",
-              "value": "VA_CV_002"
-            },
-            {
-              "idShort": "AssetIdentifier",
-              "modelType": {
-                "name": "Property"
-              },
-              "valueType": "xs:double",
-              "value": "example.org/VA-CV-002"
-            },
-            {
-              "idShort": "value",
-              "modelType": {
-                "name": "Property"
-              },
-              "valueType": "xs:boolean",
-              "value": "TRUE"
-            }
-          ]
-        },
-        {
-          "idShort": "VA_CV_003",
-          "modelType": {
-            "name": "SubmodelElementCollection"
-          },
-          "value": [
-            {
-              "idShort": "LocalId",
-              "modelType": {
-                "name": "Property"
-              },
-              "valueType": "xs:double",
-              "value": "VA_CV_003"
-            },
-            {
-              "idShort": "AssetIdentifier",
-              "modelType": {
-                "name": "Property"
-              },
-              "valueType": "xs:double",
-              "value": "example.org/VA-CV-003"
-            },
-            {
-              "idShort": "value",
-              "modelType": {
-                "name": "Property"
-              },
-              "valueType": "xs:boolean",
-              "value": "TRUE"
-            }
-          ]
-        },
-        {
-          "idShort": "VA_CV_004",
-          "modelType": {
-            "name": "SubmodelElementCollection"
-          },
-          "value": [
-            {
-              "idShort": "LocalId",
-              "modelType": {
-                "name": "Property"
-              },
-              "valueType": "xs:double",
-              "value": "VA_CV_004"
-            },
-            {
-              "idShort": "AssetIdentifier",
-              "modelType": {
-                "name": "Property"
-              },
-              "valueType": "xs:double",
-              "value": "example.org/VA-CV-004"
-            },
-            {
-              "idShort": "value",
-              "modelType": {
-                "name": "Property"
-              },
-              "valueType": "xs:boolean",
-              "value": "TRUE"
+              "type": "ontoConcept",
+              "valueType": "xs:string",
+              "value": "InstrumentationFunction"
             }
           ]
         }
