@@ -24,6 +24,15 @@ Within example/hybrid_str <br/>
 
 <strong>pH Simulation graph [ph_simulation.png](https://github.com/harishpakala/SAFSL_Compiler_Tool_Chain/blob/main/example/hybrid_str/ph_simulation.png) </strong> <br/>
 
+## Knowledge Graph - Semantic Lifting (ONTO:Nexus 2026)
+Submodel Template Lifitng <br/>
+
+<strong>python3.12 [template_lifting.py](https://github.com/harishpakala/SAFSL_Compiler_Tool_Chain/blob/main/semantic/template_lifting.py) </strong> <br/>
+
+Submodel Instance Lifitng <br/>
+
+<strong>python3.12 [instance_lifting.py](https://github.com/harishpakala/SAFSL_Compiler_Tool_Chain/blob/main/semantic/instance_lifting.py) </strong> <br/>
+
 ## Issues
 If you want to request new features or report bug [submit a new issue](https://github.com/harishpakala/SAFSL_Compiler_Tool_Chain/issues/new)
 
