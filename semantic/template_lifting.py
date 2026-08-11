@@ -1,207 +1,268 @@
 '''
-Created on Aug 10, 2026
+Created on Aug 01, 2026
 
 @author: haris
-AAS Template Lifting
+template_lifting.py
 
-Transforms an AAS Submodel Template into:
-    - OWL classes/properties
-    - SHACL NodeShapes
-    - SHACL PropertyShapes
+Semantic lifting of an AAS Submodel Template into RDF.
+
+The generated template graph contains:
+
+- AAS structural classes
+- Domain semantic predicates
+- SHACL NodeShapes
+- SHACL PropertyShapes
+- Cardinality constraints
+- SemanticId enrichment
+
+ontoConcept is intentionally not interpreted on the template side.
+It is handled during instance lifting.
 '''
+
+import json
+
 from rdflib import (
     Graph,
     URIRef,
     Literal,
-)
-
-from rdflib.namespace import (
     RDF,
     RDFS,
     OWL,
 )
 
 import aas_core3_1.types as aas_types
+from aas_core3_1.types import KeyTypes
 import aas_core3_1.jsonization as aas_jsonization
 
-from utils import (
+from semantic.ontoutils import (
     semanticDict,
     compute_uri,
+    build_path,
     map_xsd_datatype,
     get_cardinality,
-    create_graph,
-    load_submodel,
-    push_to_graphdb,
+    make_shape_label,
+    make_node_shape_label,
+    add_cardinality_constraints,
     lift_semantic_id,
+    bind_common_namespaces,
+    push_graph_to_graphdb,
 )
 
 
-# =============================================================================
-# SHACL LABELS
-# =============================================================================
+def make_semantic_predicate(
+    domain: str,
+    id_short: str,
+) -> URIRef:
 
-def label_node_shape(
+    if not id_short:
+        raise ValueError(
+            "Cannot create semantic predicate from empty idShort."
+        )
+
+    domain_upper = domain.upper()
+
+    if domain_upper not in semanticDict:
+        raise ValueError(
+            f"Unknown domain namespace: {domain}"
+        )
+
+    return URIRef(
+        str(semanticDict[domain_upper])
+        + "has"
+        + id_short
+    )
+
+
+def ensure_aas_class(
     graph: Graph,
-    shape_node: URIRef,
-    name: str,
-    path: str,
-):
-    """
-    Properly label a SHACL NodeShape.
-    """
+    class_name: str,
+    label: str,
+) -> URIRef:
+
+    class_uri = semanticDict["AAS"][class_name]
 
     graph.add(
         (
-            shape_node,
-            semanticDict["SH"].name,
-            Literal(name),
+            class_uri,
+            RDF.type,
+            OWL.Class,
         )
     )
 
     graph.add(
         (
-            shape_node,
+            class_uri,
+            RDFS.label,
+            Literal(label),
+        )
+    )
+
+    return class_uri
+
+
+def lift_template(
+    submodel,
+    graph: Graph,
+    domain: str,
+):
+
+    template_id = submodel.id
+
+    template_class = compute_uri(
+        template_id,
+        "",
+    )
+
+    graph.add(
+        (
+            template_class,
+            RDF.type,
+            OWL.Class,
+        )
+    )
+
+    graph.add(
+        (
+            template_class,
+            RDFS.label,
+            Literal(submodel.id_short),
+        )
+    )
+
+    template_shape = compute_uri(
+        template_id,
+        "shape",
+    )
+
+    graph.add(
+        (
+            template_shape,
+            RDF.type,
+            semanticDict["SH"]["NodeShape"],
+        )
+    )
+
+    graph.add(
+        (
+            template_shape,
             RDFS.label,
             Literal(
-                f"SHACL Node Shape: {name}"
+                make_node_shape_label(
+                    submodel.id_short
+                )
             ),
         )
     )
 
     graph.add(
         (
-            shape_node,
-            semanticDict["SH"].description,
-            Literal(
-                f"Node shape for AAS path '{path}'"
-            ),
+            template_shape,
+            semanticDict["SH"]["targetClass"],
+            template_class,
         )
     )
 
+    lift_elements(
+        graph=graph,
+        template_id=template_id,
+        elements=submodel.submodel_elements,
+        parent_path="",
+        parent_shape=template_shape,
+        domain=domain,
+    )
 
-def label_property_shape(
+
+def lift_elements(
     graph: Graph,
-    shape_node: URIRef,
-    name: str,
-    path: str,
+    template_id: str,
+    elements,
+    parent_path: str,
+    parent_shape: URIRef,
+    domain: str,
 ):
-    """
-    Properly label a SHACL PropertyShape.
-    """
 
-    graph.add(
-        (
-            shape_node,
-            semanticDict["SH"].name,
-            Literal(name),
-        )
-    )
+    for element in elements:
 
-    graph.add(
-        (
-            shape_node,
-            RDFS.label,
-            Literal(
-                f"SHACL Property Shape: {name}"
-            ),
-        )
-    )
-
-    graph.add(
-        (
-            shape_node,
-            semanticDict["SH"].description,
-            Literal(
-                f"Property shape for AAS path '{path}'"
-            ),
-        )
-    )
-
-
-# =============================================================================
-# CARDINALITY
-# =============================================================================
-
-def apply_cardinality(
-    graph: Graph,
-    shape_node: URIRef,
-    element,
-):
-    """
-    Apply the AAS Cardinality qualifier to a SHACL shape.
-    """
-
-    min_count, max_count = get_cardinality(
-        element
-    )
-
-    graph.add(
-        (
-            shape_node,
-            semanticDict["SH"].minCount,
-            Literal(min_count),
-        )
-    )
-
-    if max_count is not None:
-
-        graph.add(
-            (
-                shape_node,
-                semanticDict["SH"].maxCount,
-                Literal(max_count),
+        if isinstance(
+            element,
+            aas_types.Property,
+        ):
+            lift_property(
+                graph,
+                template_id,
+                element,
+                parent_path,
+                parent_shape,
+                domain,
             )
-        )
 
+        elif isinstance(
+            element,
+            aas_types.Range,
+        ):
+            lift_range(
+                graph,
+                template_id,
+                element,
+                parent_path,
+                parent_shape,
+                domain,
+            )
 
-# =============================================================================
-# PROPERTY
-# =============================================================================
+        elif isinstance(
+            element,
+            aas_types.SubmodelElementCollection,
+        ):
+            lift_smc(
+                graph,
+                template_id,
+                element,
+                parent_path,
+                parent_shape,
+                domain,
+            )
+
+        elif isinstance(
+            element,
+            aas_types.RelationshipElement,
+        ):
+            lift_relationship(
+                graph,
+                template_id,
+                element,
+                parent_path,
+                parent_shape,
+                domain,
+            )
+
+        else:
+            print(
+                "Warning: unsupported AAS element type: "
+                f"{type(element).__name__}"
+            )
 
 def lift_property(
     graph: Graph,
-    submodel_id: str,
-    element: aas_types.Property,
+    template_id: str,
+    element,
     parent_path: str,
     parent_shape: URIRef,
+    domain: str,
 ):
-    """
-    Lift template Property.
-    """
-
-    if parent_path:
-
-        path = (
-            parent_path
-            + "."
-            + element.id_short
-        )
-
-    else:
-
-        path = element.id_short
-
-    # -------------------------------------------------------------------------
-    # Stable TEMPLATE property URI
-    # -------------------------------------------------------------------------
-
-    property_uri = compute_uri(
-        submodel_id,
-        path,
+    path = build_path(
+        parent_path,
+        element.id_short,
     )
 
-    # -------------------------------------------------------------------------
-    # SHACL PropertyShape
-    # -------------------------------------------------------------------------
+    property_uri = make_semantic_predicate(
+        domain,
+        element.id_short,
+    )
 
-    shape_node = compute_uri(
-        submodel_id,
+    shape_uri = compute_uri(
+        template_id,
         path + "/shape",
     )
-
-    # -------------------------------------------------------------------------
-    # OWL DatatypeProperty
-    # -------------------------------------------------------------------------
 
     graph.add(
         (
@@ -216,148 +277,94 @@ def lift_property(
             property_uri,
             RDFS.label,
             Literal(
-                element.id_short
+                "has" + element.id_short
             ),
         )
     )
 
-    # -------------------------------------------------------------------------
-    # PropertyShape
-    # -------------------------------------------------------------------------
-
     graph.add(
         (
-            shape_node,
+            shape_uri,
             RDF.type,
-            semanticDict["SH"].PropertyShape,
+            semanticDict["SH"]["PropertyShape"],
         )
     )
 
     graph.add(
         (
-            shape_node,
-            semanticDict["SH"].path,
+            shape_uri,
+            RDFS.label,
+            Literal(
+                make_shape_label(
+                    element.id_short
+                )
+            ),
+        )
+    )
+
+    graph.add(
+        (
+            shape_uri,
+            semanticDict["SH"]["path"],
             property_uri,
         )
     )
 
-    graph.add(
-        (
-            shape_node,
-            semanticDict["SH"].datatype,
-            map_xsd_datatype(
-                element.value_type
-            ),
-        )
+    min_count, max_count = get_cardinality(
+        element
     )
 
-    # -------------------------------------------------------------------------
-    # Cardinality from qualifier
-    # -------------------------------------------------------------------------
-
-    apply_cardinality(
+    add_cardinality_constraints(
         graph,
-        shape_node,
+        shape_uri,
+        min_count,
+        max_count,
+    )
+
+    lift_semantic_id(
+        graph,
+        template_id,
         element,
-    )
-
-    # -------------------------------------------------------------------------
-    # Labels
-    # -------------------------------------------------------------------------
-
-    label_property_shape(
-        graph,
-        shape_node,
-        element.id_short,
         path,
     )
-
-    # -------------------------------------------------------------------------
-    # Attach to parent NodeShape
-    # -------------------------------------------------------------------------
 
     graph.add(
         (
             parent_shape,
-            semanticDict["SH"].property,
-            shape_node,
+            semanticDict["SH"]["property"],
+            shape_uri,
         )
     )
-
-    # -------------------------------------------------------------------------
-    # Semantic ID
-    # -------------------------------------------------------------------------
-
-    lift_semantic_id(
-        graph,
-        submodel_id,
-        element,
-        path,
-    )
-
-
-# =============================================================================
-# RANGE
-# =============================================================================
 
 def lift_range(
     graph: Graph,
-    submodel_id: str,
-    element: aas_types.Range,
+    template_id: str,
+    element,
     parent_path: str,
     parent_shape: URIRef,
+    domain: str,
 ):
-    """
-    Lift template Range.
-    """
 
-    if parent_path:
-
-        path = (
-            parent_path
-            + "."
-            + element.id_short
-        )
-
-    else:
-
-        path = element.id_short
-
-    property_uri = compute_uri(
-        submodel_id,
-        path,
+    path = build_path(
+        parent_path,
+        element.id_short,
     )
 
-    shape_node = compute_uri(
-        submodel_id,
+    property_uri = make_semantic_predicate(
+        domain,
+        element.id_short,
+    )
+
+    shape_uri = compute_uri(
+        template_id,
         path + "/shape",
     )
 
-    # -------------------------------------------------------------------------
-    # Interval
-    # -------------------------------------------------------------------------
-
-    graph.add(
-        (
-            semanticDict["AAS"].Interval,
-            RDF.type,
-            OWL.Class,
-        )
+    range_class = ensure_aas_class(
+        graph,
+        "Range",
+        "AAS Range",
     )
-
-    graph.add(
-        (
-            semanticDict["AAS"].Interval,
-            RDFS.label,
-            Literal(
-                "AAS Range Interval"
-            ),
-        )
-    )
-
-    # -------------------------------------------------------------------------
-    # OWL property
-    # -------------------------------------------------------------------------
 
     graph.add(
         (
@@ -372,144 +379,101 @@ def lift_range(
             property_uri,
             RDFS.label,
             Literal(
-                element.id_short
+                "has" + element.id_short
             ),
         )
     )
 
-    # -------------------------------------------------------------------------
-    # SHACL PropertyShape
-    # -------------------------------------------------------------------------
-
     graph.add(
         (
-            shape_node,
+            shape_uri,
             RDF.type,
-            semanticDict["SH"].PropertyShape,
+            semanticDict["SH"]["PropertyShape"],
         )
     )
 
     graph.add(
         (
-            shape_node,
-            semanticDict["SH"].path,
+            shape_uri,
+            RDFS.label,
+            Literal(
+                make_shape_label(
+                    element.id_short
+                )
+            ),
+        )
+    )
+
+    graph.add(
+        (
+            shape_uri,
+            semanticDict["SH"]["path"],
             property_uri,
         )
     )
 
     graph.add(
         (
-            shape_node,
-            semanticDict["SH"].class_,
-            semanticDict["AAS"].Interval,
+            shape_uri,
+            semanticDict["SH"]["class"],
+            range_class,
         )
     )
 
-    apply_cardinality(
-        graph,
-        shape_node,
-        element,
+    min_count, max_count = get_cardinality(
+        element
     )
 
-    label_property_shape(
+    add_cardinality_constraints(
         graph,
-        shape_node,
-        element.id_short,
+        shape_uri,
+        min_count,
+        max_count,
+    )
+
+    lift_semantic_id(
+        graph,
+        template_id,
+        element,
         path,
     )
 
     graph.add(
         (
             parent_shape,
-            semanticDict["SH"].property,
-            shape_node,
+            semanticDict["SH"]["property"],
+            shape_uri,
         )
     )
-
-    lift_semantic_id(
-        graph,
-        submodel_id,
-        element,
-        path,
-    )
-
-
-# =============================================================================
-# SUBMODEL ELEMENT COLLECTION
-# =============================================================================
 
 def lift_smc(
     graph: Graph,
-    submodel_id: str,
-    element: aas_types.SubmodelElementCollection,
+    template_id: str,
+    element,
     parent_path: str,
-    domain: str,
     parent_shape: URIRef,
+    domain: str,
 ):
-    """
-    Lift a template SubmodelElementCollection.
-
-    A collection creates TWO SHACL resources:
-
-        PropertyShape
-            |
-            +-- sh:path
-            +-- sh:minCount
-            +-- sh:maxCount
-            +-- sh:node
-                     |
-                     v
-                 NodeShape
-                     |
-                     +-- child PropertyShapes
-    """
-
-    # -------------------------------------------------------------------------
-    # Path
-    # -------------------------------------------------------------------------
-
-    if parent_path:
-
-        path = (
-            parent_path
-            + "."
-            + element.id_short
-        )
-
-    else:
-
-        path = element.id_short
-
-    # -------------------------------------------------------------------------
-    # Property URI
-    # -------------------------------------------------------------------------
-
-    property_uri = compute_uri(
-        submodel_id,
-        path,
+    path = build_path(
+        parent_path,
+        element.id_short,
     )
 
-    # -------------------------------------------------------------------------
-    # PropertyShape
-    # -------------------------------------------------------------------------
+    property_uri = make_semantic_predicate(
+        domain,
+        element.id_short,
+    )
 
-    property_shape = compute_uri(
-        submodel_id,
+    shape_uri = compute_uri(
+        template_id,
         path + "/shape",
     )
 
-    # -------------------------------------------------------------------------
-    # NodeShape for collection contents
-    # -------------------------------------------------------------------------
-
-    node_shape = compute_uri(
-        submodel_id,
-        path + "/node-shape",
+    smc_class = ensure_aas_class(
+        graph,
+        "SMC",
+        "Submodel Element Collection",
     )
-
-    # -------------------------------------------------------------------------
-    # OWL ObjectProperty
-    # -------------------------------------------------------------------------
 
     graph.add(
         (
@@ -524,453 +488,373 @@ def lift_smc(
             property_uri,
             RDFS.label,
             Literal(
-                element.id_short
+                "has" + element.id_short
             ),
         )
     )
 
-    # -------------------------------------------------------------------------
-    # PropertyShape
-    # -------------------------------------------------------------------------
-
+    # PropertyShape for the SMC relationship
     graph.add(
         (
-            property_shape,
+            shape_uri,
             RDF.type,
-            semanticDict["SH"].PropertyShape,
+            semanticDict["SH"]["PropertyShape"],
         )
     )
 
     graph.add(
         (
-            property_shape,
-            semanticDict["SH"].path,
+            shape_uri,
+            RDFS.label,
+            Literal(
+                make_shape_label(
+                    element.id_short
+                )
+            ),
+        )
+    )
+
+    graph.add(
+        (
+            shape_uri,
+            semanticDict["SH"]["path"],
             property_uri,
         )
     )
 
+    # The value reached through this property must be an SMC
     graph.add(
         (
-            property_shape,
-            semanticDict["SH"].class_,
-            semanticDict["AAS"].SMC,
+            shape_uri,
+            semanticDict["SH"]["class"],
+            smc_class,
         )
     )
 
-    # Cardinality
-    apply_cardinality(
+    min_count, max_count = get_cardinality(element)
+
+    add_cardinality_constraints(
         graph,
-        property_shape,
-        element,
+        shape_uri,
+        min_count,
+        max_count,
     )
 
-    # PropertyShape -> NodeShape
-    graph.add(
-        (
-            property_shape,
-            semanticDict["SH"].node,
-            node_shape,
-        )
-    )
-
-    # Labels
-    label_property_shape(
-        graph,
-        property_shape,
-        element.id_short,
-        path,
-    )
-
-    # Attach property to parent
     graph.add(
         (
             parent_shape,
-            semanticDict["SH"].property,
-            property_shape,
+            semanticDict["SH"]["property"],
+            shape_uri,
         )
     )
 
-    # -------------------------------------------------------------------------
-    # NodeShape
-    # -------------------------------------------------------------------------
+    # NodeShape for the contents of this SMC
+    child_shape = compute_uri(
+        template_id,
+        path + "/nodeShape",
+    )
 
     graph.add(
         (
-            node_shape,
+            child_shape,
             RDF.type,
-            semanticDict["SH"].NodeShape,
+            semanticDict["SH"]["NodeShape"],
         )
     )
 
-    label_node_shape(
-        graph,
-        node_shape,
-        element.id_short,
-        path,
+    graph.add(
+        (
+            child_shape,
+            RDFS.label,
+            Literal(
+                make_node_shape_label(
+                    element.id_short
+                )
+            ),
+        )
     )
 
-    # -------------------------------------------------------------------------
-    # Recurse into collection
-    # -------------------------------------------------------------------------
+    # IMPORTANT:
+    # Do NOT use sh:targetClass aas:SMC here.
+    #
+    # The child shape is applied through sh:node from
+    # the parent PropertyShape.
+
+    graph.add(
+        (
+            shape_uri,
+            semanticDict["SH"]["node"],
+            child_shape,
+        )
+    )
 
     lift_elements(
-        graph,
-        submodel_id,
-        element.value,
-        path,
-        domain,
-        node_shape,
+        graph=graph,
+        template_id=template_id,
+        elements=element.value,
+        parent_path=path,
+        parent_shape=child_shape,
+        domain=domain,
     )
 
-    # Semantic ID
-    lift_semantic_id(
-        graph,
-        submodel_id,
-        element,
-        path,
-    )
+def resolve_model_reference_uri(
+    reference,
+    instance_id: str,
+) -> URIRef:
 
-
-# =============================================================================
-# RELATIONSHIP
-# =============================================================================
-
-def lift_relationship(
-    graph: Graph,
-    submodel_id: str,
-    element: aas_types.RelationshipElement,
-    parent_path: str,
-    parent_shape: URIRef,
-):
-    """
-    Lift RelationshipElement template.
-    """
-
-    if parent_path:
-
-        path = (
-            parent_path
-            + "."
-            + element.id_short
+    if reference is None:
+        raise ValueError(
+            "Relationship reference is None."
         )
 
-    else:
-
-        path = element.id_short
-
-    relation_uri = URIRef(
-        f"{submodel_id}#{element.id_short}"
-    )
-
-    shape_node = compute_uri(
-        submodel_id,
-        path + "/shape",
-    )
-
-    # OWL property
-    graph.add(
-        (
-            relation_uri,
-            RDF.type,
-            OWL.ObjectProperty,
+    if not reference.keys:
+        raise ValueError(
+            "Relationship reference contains no keys."
         )
-    )
 
-    graph.add(
-        (
-            relation_uri,
-            RDFS.label,
-            Literal(
-                element.id_short
-            ),
+    submodel_id = None
+    path_parts = []
+
+    for key in reference.keys:
+
+        key_value = str(
+            key.value
         )
-    )
 
-    # SHACL PropertyShape
-    graph.add(
-        (
-            shape_node,
-            RDF.type,
-            semanticDict["SH"].PropertyShape,
-        )
-    )
+        if key.type == KeyTypes.SUBMODEL:
 
-    graph.add(
-        (
-            shape_node,
-            semanticDict["SH"].path,
-            relation_uri,
-        )
-    )
-
-    graph.add(
-        (
-            shape_node,
-            semanticDict["SH"].class_,
-            semanticDict["AAS"].SubmodelElement,
-        )
-    )
-
-    apply_cardinality(
-        graph,
-        shape_node,
-        element,
-    )
-
-    label_property_shape(
-        graph,
-        shape_node,
-        element.id_short,
-        path,
-    )
-
-    graph.add(
-        (
-            parent_shape,
-            semanticDict["SH"].property,
-            shape_node,
-        )
-    )
-
-    lift_semantic_id(
-        graph,
-        submodel_id,
-        element,
-        path,
-    )
-
-
-# =============================================================================
-# DISPATCHER
-# =============================================================================
-
-def lift_elements(
-    graph: Graph,
-    submodel_id: str,
-    elements,
-    parent_path: str,
-    domain: str,
-    parent_shape: URIRef,
-):
-    """
-    Recursively lift template elements.
-    """
-
-    for element in elements:
-
-        if isinstance(
-            element,
-            aas_types.Property,
-        ):
-
-            lift_property(
-                graph,
-                submodel_id,
-                element,
-                parent_path,
-                parent_shape,
-            )
-
-        elif isinstance(
-            element,
-            aas_types.Range,
-        ):
-
-            lift_range(
-                graph,
-                submodel_id,
-                element,
-                parent_path,
-                parent_shape,
-            )
-
-        elif isinstance(
-            element,
-            aas_types.SubmodelElementCollection,
-        ):
-
-            lift_smc(
-                graph,
-                submodel_id,
-                element,
-                parent_path,
-                domain,
-                parent_shape,
-            )
-
-        elif isinstance(
-            element,
-            aas_types.RelationshipElement,
-        ):
-
-            lift_relationship(
-                graph,
-                submodel_id,
-                element,
-                parent_path,
-                parent_shape,
-            )
+            submodel_id = key_value
 
         else:
 
-            print(
-                "Warning: unsupported template "
-                f"element: {type(element).__name__}"
+            path_parts.append(
+                key_value
             )
 
+    if submodel_id is None:
+        raise ValueError(
+            "ModelReference does not contain "
+            "a Submodel key."
+        )
 
-# =============================================================================
-# ROOT TEMPLATE
-# =============================================================================
+    if submodel_id == instance_id:
 
-def template_lifting(
-    submodel,
+        path = ".".join(
+            path_parts
+        )
+
+        return compute_uri(
+            instance_id,
+            path,
+        )
+
+    if path_parts:
+
+        return URIRef(
+            submodel_id
+            + "#"
+            + ".".join(path_parts)
+        )
+
+    return URIRef(
+        submodel_id
+    )
+
+def lift_relationship(
+    graph: Graph,
+    instance_id: str,
+    element,
+    parent_path: str,
+    parent_uri: URIRef,
     domain: str,
 ):
-    """
-    Lift the complete AAS template.
-    """
+    path = build_path(
+        parent_path,
+        element.id_short,
+    )
 
-    graph = create_graph(
-        submodel.id,
+    element_uri = compute_uri(
+        instance_id,
+        path,
+    )
+
+    graph.add(
+        (
+            element_uri,
+            RDF.type,
+            semanticDict["AAS"]["RelationshipElement"],
+        )
+    )
+
+    graph.add(
+        (
+            element_uri,
+            RDFS.label,
+            Literal(
+                element.id_short
+            ),
+        )
+    )
+
+    predicate = make_semantic_predicate(
+        domain,
+        element.id_short,
+    )
+
+    graph.add(
+        (
+            parent_uri,
+            predicate,
+            element_uri,
+        )
+    )
+
+    if element.first is not None:
+
+        first_uri = resolve_model_reference_uri(
+            element.first,
+            instance_id,
+        )
+
+        graph.add(
+            (
+                element_uri,
+                semanticDict["AAS"]["first"],
+                first_uri,
+            )
+        )
+
+    if element.second is not None:
+
+        second_uri = resolve_model_reference_uri(
+            element.second,
+            instance_id,
+        )
+
+        graph.add(
+            (
+                element_uri,
+                semanticDict["AAS"]["second"],
+                second_uri,
+            )
+        )
+
+    lift_semantic_id(
+        graph,
+        instance_id,
+        element,
+        path,
+    )
+
+
+def build_template_graph(
+    submodel,
+    domain: str,
+) -> Graph:
+
+    graph = Graph()
+
+    bind_common_namespaces(
+        graph,
         domain,
     )
 
-    # -------------------------------------------------------------------------
-    # Root class
-    # -------------------------------------------------------------------------
-
-    template_class = compute_uri(
-        submodel.id,
-        "",
-    )
-
-    graph.add(
-        (
-            template_class,
-            RDF.type,
-            OWL.Class,
-        )
-    )
-
-    graph.add(
-        (
-            template_class,
-            RDFS.label,
-            Literal(
-                submodel.id_short
-            ),
-        )
-    )
-
-    # -------------------------------------------------------------------------
-    # Root NodeShape
-    # -------------------------------------------------------------------------
-
-    root_shape = compute_uri(
-        submodel.id,
-        "shape",
-    )
-
-    graph.add(
-        (
-            root_shape,
-            RDF.type,
-            semanticDict["SH"].NodeShape,
-        )
-    )
-
-    graph.add(
-        (
-            root_shape,
-            semanticDict["SH"].targetClass,
-            template_class,
-        )
-    )
-
-    label_node_shape(
+    lift_template(
+        submodel,
         graph,
-        root_shape,
-        submodel.id_short,
-        submodel.id_short,
-    )
-
-    # -------------------------------------------------------------------------
-    # Common AAS classes
-    # -------------------------------------------------------------------------
-
-    graph.add(
-        (
-            semanticDict["AAS"].SMC,
-            RDF.type,
-            OWL.Class,
-        )
-    )
-
-    graph.add(
-        (
-            semanticDict["AAS"].SMC,
-            RDFS.label,
-            Literal(
-                "AAS Submodel Element Collection"
-            ),
-        )
-    )
-
-    graph.add(
-        (
-            semanticDict["AAS"].SubmodelElement,
-            RDF.type,
-            OWL.Class,
-        )
-    )
-
-    graph.add(
-        (
-            semanticDict["AAS"].SubmodelElement,
-            RDFS.label,
-            Literal(
-                "AAS Submodel Element"
-            ),
-        )
-    )
-
-    # -------------------------------------------------------------------------
-    # Elements
-    # -------------------------------------------------------------------------
-
-    lift_elements(
-        graph,
-        submodel.id,
-        submodel.submodel_elements,
-        "",
         domain,
-        root_shape,
     )
 
     return graph
 
-def main(filename,domain):
 
+def main(domain,template_file):
 
-    submodel = load_submodel(
-        filename    )
+    with open(
+        template_file,
+        "r",
+        encoding="utf-8",
+    ) as f:
 
-    graph = template_lifting(
-        submodel,
+        model = json.load(f)
+
+    template = (
+        aas_jsonization.submodel_from_jsonable(
+            model
+        )
+    )
+
+    print()
+    print(
+        "=========================================="
+    )
+    print(
+        "AAS TEMPLATE LIFTING"
+    )
+    print(
+        "=========================================="
+    )
+
+    print(
+        f"Template ID: {template.id}"
+    )
+
+    print(
+        f"Template idShort: {template.id_short}"
+    )
+
+    graph = build_template_graph(
+        template,
         domain,
     )
 
-    print(f"Template graph contains {len(graph)} triples.")
+    print()
+    print(
+        "=========================================="
+    )
+    print(
+        "GENERATED TEMPLATE GRAPH"
+    )
+    print(
+        "=========================================="
+    )
 
-    push_to_graphdb(
-            graph,
-            submodel.id,
+    print(
+        f"Total triples: {len(graph)}"
+    )
+
+    print()
+
+    print(
+        graph.serialize(
+            format="turtle"
         )
+    )
+
+    template_graph_uri = compute_uri(
+        template.id
+    )
+
+    push_graph_to_graphdb(
+        graph,
+        template_graph_uri,
+    )
+
+    print()
+    print(
+        "=========================================="
+    )
+    print(
+        "TEMPLATE LIFTING COMPLETE"
+    )
+    print(
+        "=========================================="
+    )
+
 
 if __name__ == "__main__":
     
-    file_dict = {"dexpi":"dexpi_template.json"} # "ecad":"sample_ecad.json",
+    template_data = {"ecad":"ecad_template.json","dexpi":"dexpi_template.json"}
     
-    for domain,filename in file_dict.items():
-        main(filename,domain)
+    for domain,template_file in template_data.items():
+        main(domain,template_file)

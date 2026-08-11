@@ -1,0 +1,380 @@
+{
+  "modelType": "Submodel",
+  "id": "https://example.org/smi/ecad25",
+  "idShort": "ECAD25",
+  "semanticId": {
+    "type": "ExternalReference",
+    "keys": [
+      {
+        "type": "GlobalReference",
+        "value": "https://example.org/smt/ecad"
+      }
+    ]
+  },
+  "submodelElements": [
+    {
+      "modelType": "SubmodelElementCollection",
+      "idShort": "Devices",
+      "value": [
+        {
+          "modelType": "SubmodelElementCollection",
+          "idShort": "PLCBox",
+          "value": [
+            {
+              "modelType": "Property",
+              "idShort": "AssetIdentifier",
+              "valueType": "xs:string",
+              "value": "K1"
+            },
+            {
+              "modelType": "Property",
+              "idShort": "LocalId",
+              "valueType": "xs:string",
+              "value": "K1"
+            },
+            {
+              "modelType": "SubmodelElementCollection",
+              "idShort": "ConnectionPoints",
+              "value": [
+                {
+                  "modelType": "SubmodelElementCollection",
+                  "idShort": "D0_0",
+                  "value": [
+                    {
+                      "modelType": "Property",
+                      "idShort": "LocalId",
+                      "valueType": "xs:string",
+                      "value": "Q10.0"
+                    },
+                    {
+                      "modelType": "Property",
+                      "idShort": "Address",
+                      "valueType": "xs:string",
+                      "value": "3"
+                    }
+                  ],
+                  "qualifiers": [
+                    {
+                      "semanticId": {
+                        "type": "ExternalReference",
+                        "keys": [
+                          {
+                            "type": "GlobalReference",
+                            "value": "https://admin-shell.io/SubmodelTemplates/ontoConcept/1/0"
+                          }
+                        ]
+                      },
+                      "type": "ontoConcept",
+                      "valueType": "xs:string",
+                      "value": "PLCEndPoint"
+                    }
+                  ]
+                }
+              ],
+              "qualifiers": [
+                {
+                  "semanticId": {
+                    "type": "ExternalReference",
+                    "keys": [
+                      {
+                        "type": "GlobalReference",
+                        "value": "https://admin-shell.io/SubmodelTemplates/ontoConcept/1/0"
+                      }
+                    ]
+                  },
+                  "type": "ontoConcept",
+                  "valueType": "xs:string",
+                  "value": "ConnectionPoints"
+                }
+              ]
+            }
+          ],
+          "qualifiers": [
+            {
+              "semanticId": {
+                "type": "ExternalReference",
+                "keys": [
+                  {
+                    "type": "GlobalReference",
+                    "value": "https://admin-shell.io/SubmodelTemplates/ontoConcept/1/0"
+                  }
+                ]
+              },
+              "type": "ontoConcept",
+              "valueType": "xs:string",
+              "value": "Device"
+            }
+          ]
+        },
+        {
+          "modelType": "SubmodelElementCollection",
+          "idShort": "LI",
+          "value": [
+            {
+              "modelType": "Property",
+              "idShort": "AssetIdentifier",
+              "valueType": "xs:string",
+              "value": "LI"
+            },
+            {
+              "modelType": "Property",
+              "idShort": "LocalId",
+              "valueType": "xs:string",
+              "value": "LI"
+            },
+            {
+              "modelType": "SubmodelElementCollection",
+              "idShort": "ConnectionPoints",
+              "value": [
+                {
+                  "modelType": "SubmodelElementCollection",
+                  "idShort": "TA1_2_Out2",
+                  "value": [
+                    {
+                      "modelType": "Property",
+                      "idShort": "LocalId",
+                      "valueType": "xs:string",
+                      "value": "LI"
+                    },
+                    {
+                      "modelType": "Property",
+                      "idShort": "Address",
+                      "valueType": "xs:string",
+                      "value": "3"
+                    }
+                  ],
+                  "qualifiers": [
+                    {
+                      "semanticId": {
+                        "type": "ExternalReference",
+                        "keys": [
+                          {
+                            "type": "GlobalReference",
+                            "value": "https://admin-shell.io/SubmodelTemplates/ontoConcept/1/0"
+                          }
+                        ]
+                      },
+                      "type": "ontoConcept",
+                      "valueType": "xs:string",
+                      "value": "EndPoint"
+                    }
+                  ]
+                }
+              ],
+              "qualifiers": [
+                {
+                  "semanticId": {
+                    "type": "ExternalReference",
+                    "keys": [
+                      {
+                        "type": "GlobalReference",
+                        "value": "https://admin-shell.io/SubmodelTemplates/ontoConcept/1/0"
+                      }
+                    ]
+                  },
+                  "type": "ontoConcept",
+                  "valueType": "xs:string",
+                  "value": "ConnectionPoints"
+                }
+              ]
+            }
+          ],
+          "qualifiers": [
+            {
+              "semanticId": {
+                "type": "ExternalReference",
+                "keys": [
+                  {
+                    "type": "GlobalReference",
+                    "value": "https://admin-shell.io/SubmodelTemplates/ontoConcept/1/0"
+                  }
+                ]
+              },
+              "type": "ontoConcept",
+              "valueType": "xs:string",
+              "value": "Device"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "modelType": "SubmodelElementCollection",
+      "idShort": "Symbols",
+      "value": [
+        {
+          "modelType": "SubmodelElementCollection",
+          "idShort": "AT",
+          "value": [
+            {
+              "modelType": "Property",
+              "idShort": "AssetIdentifier",
+              "valueType": "xs:string",
+              "value": "AT"
+            },
+            {
+              "modelType": "Property",
+              "idShort": "LocalId",
+              "valueType": "xs:string",
+              "value": "AT"
+            },
+            {
+              "modelType": "SubmodelElementCollection",
+              "idShort": "ConnectionPoints",
+              "value": [
+                {
+                  "modelType": "SubmodelElementCollection",
+                  "idShort": "TA1_2_Out2",
+                  "value": [
+                    {
+                      "modelType": "Property",
+                      "idShort": "LocalId",
+                      "valueType": "xs:string",
+                      "value": "LI"
+                    },
+                    {
+                      "modelType": "Property",
+                      "idShort": "Address",
+                      "valueType": "xs:string",
+                      "value": "3"
+                    }
+                  ],
+                  "qualifiers": [
+                    {
+                      "semanticId": {
+                        "type": "ExternalReference",
+                        "keys": [
+                          {
+                            "type": "GlobalReference",
+                            "value": "https://admin-shell.io/SubmodelTemplates/ontoConcept/1/0"
+                          }
+                        ]
+                      },
+                      "type": "ontoConcept",
+                      "valueType": "xs:string",
+                      "value": "EndPoint"
+                    }
+                  ]
+                }
+              ],
+              "qualifiers": [
+                {
+                  "semanticId": {
+                    "type": "ExternalReference",
+                    "keys": [
+                      {
+                        "type": "GlobalReference",
+                        "value": "https://admin-shell.io/SubmodelTemplates/ontoConcept/1/0"
+                      }
+                    ]
+                  },
+                  "type": "ontoConcept",
+                  "valueType": "xs:string",
+                  "value": "ConnectionPoints"
+                }
+              ]
+            }
+          ],
+          "qualifiers": [
+            {
+              "semanticId": {
+                "type": "ExternalReference",
+                "keys": [
+                  {
+                    "type": "GlobalReference",
+                    "value": "https://admin-shell.io/SubmodelTemplates/ontoConcept/1/0"
+                  }
+                ]
+              },
+              "type": "ontoConcept",
+              "valueType": "xs:string",
+              "value": "Symbol"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "modelType": "SubmodelElementCollection",
+      "idShort": "Schematics",
+      "value": [
+        {
+          "modelType": "SubmodelElementCollection",
+          "idShort": "Connections",
+          "value": [
+            {
+              "idShort": "isConnectedTo",
+              "first": {
+                "type": "ModelReference",
+                "keys": [
+                  {
+                    "type": "Submodel",
+                    "value": "https://example.org/smi/ecad25"
+                  },
+                  {
+                    "type": "SubmodelElementCollection",
+                    "value": "Devices"
+                  },
+                  {
+                    "type": "SubmodelElementCollection",
+                    "value": "LI"
+                  },
+                  {
+                    "type": "SubmodelElementCollection",
+                    "value": "ConnectionPoints"
+                  },
+                  {
+                    "type": "SubmodelElementCollection",
+                    "value": "TA1_2_Out2"
+                  }
+                ]
+              },
+              "second": {
+                "type": "ModelReference",
+                "keys": [
+                  {
+                    "type": "Submodel",
+                    "value": "https://example.org/smi/ecad25"
+                  },
+                  {
+                    "type": "SubmodelElementCollection",
+                    "value": "Devices"
+                  },
+                  {
+                    "type": "SubmodelElementCollection",
+                    "value": "PLCBox"
+                  },
+                  {
+                    "type": "SubmodelElementCollection",
+                    "value": "ConnectionPoints"
+                  },
+                  {
+                    "type": "SubmodelElementCollection",
+                    "value": "D0_0"
+                  }
+                ]
+              },
+              "modelType": "RelationshipElement"
+            }
+          ],
+          "qualifiers": [
+            {
+              "semanticId": {
+                "type": "ExternalReference",
+                "keys": [
+                  {
+                    "type": "GlobalReference",
+                    "value": "https://admin-shell.io/SubmodelTemplates/ontoConcept/1/0"
+                  }
+                ]
+              },
+              "type": "ontoConcept",
+              "valueType": "xs:string",
+              "value": "SchematicsCOnnections"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

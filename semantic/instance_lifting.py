@@ -1,156 +1,668 @@
 '''
-Created on Aug 10, 2026
+Created on Aug 01, 2026
 
 @author: haris
 
-AAS Instance Lifting
+instance_lifting.py
 
-Transforms an AAS Submodel Instance into RDF instance data.
+Semantic lifting of an AAS instance into RDF.
+
+Design:
+- The AAS instance is converted into an RDF instance graph.
+- The template submodel ID is used to locate the corresponding
+  SHACL graph in GraphDB.
+- SHACL shapes are fetched from GraphDB; no local template file
+  is required.
+- Instance semantic concepts determine domain classes/predicates.
+- Properties are represented as direct RDF literals.
+- Instance resource URIs remain deterministic Base64 URIs.
+- Instance labels use the original idShort.
 '''
-import json
-import base64
-import hashlib
-from typing import Optional
 
+import json
 import requests
+
 from rdflib import (
     Graph,
-    Dataset,
-    Namespace,
     URIRef,
     Literal,
     RDF,
     RDFS,
-    XSD,
+    OWL,
+    Namespace,
 )
+
 from pyshacl import validate
 
 import aas_core3_1.types as aas_types
 import aas_core3_1.jsonization as aas_jsonization
 
-semanticDict = {}
-
-semanticDict["AAS"] = Namespace("https://example.org/aas/")
-semanticDict["ECAD"] = Namespace("https://example.org/ecad/")
-semanticDict["DEXPI"] = Namespace("https://example.org/dexpi/")
-semanticDict["EX"] = Namespace("http://example.org/ex#")
-semanticDict["ECLASS"] = Namespace("http://example.org/eclass#")
-semanticDict["SH"] = Namespace("http://www.w3.org/ns/shacl#")
-semanticDict["QUDT"] = Namespace("http://qudt.org/schema/qudt/")
-semanticDict["UNIT"] = Namespace("http://qudt.org/vocab/unit/")
-
-
-BASE_URI = "http://org.example.com"
-
-GRAPHDB_QUERY_ENDPOINT = (
-    "http://localhost:7200/repositories/AAS"
+from semantic.ontoutils import (
+    semanticDict,
+    compute_uri,
+    build_path,
+    make_literal,
+    get_ontology_concept,
+    bind_common_namespaces,
+    lift_semantic_id,
+    push_graph_to_graphdb,
+    get_graphdb_repository_url,
 )
 
-GRAPHDB_STATEMENTS_ENDPOINT = (
-    "http://localhost:7200/repositories/AAS/statements"
-)
 
-GRAPHDB_QUERY_HEADERS = {
-    "Accept": "application/sparql-results+json"
-}
+# ---------------------------------------------------------------------------
+# Configuration
+# ---------------------------------------------------------------------------
 
-GRAPHDB_UPDATE_HEADERS = {
-    "Content-Type": "application/sparql-update"
-}
+SH = Namespace("http://www.w3.org/ns/shacl#")
 
+VALIDATE_INSTANCE = True
 
-def sha256(value: str) -> str:
-    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+INSTANCE_GRAPH_URI = None
 
 
-def b64(value: str) -> str:
-    return (
-        base64.b64encode(value.encode("utf-8"))
-        .decode("utf-8")
-        .rstrip("=")
-    )
+# ---------------------------------------------------------------------------
+# Semantic URI helpers
+# ---------------------------------------------------------------------------
 
-
-def compute_uri(submodel_id: str, path: str = "") -> URIRef:
+def make_semantic_predicate(
+    domain: str,
+    concept: str,
+) -> URIRef:
     """
-    Compute the RDF URI for an AAS submodel/path.
+    Create a domain semantic predicate.
 
     Example:
+        domain = "dexpi"
+        concept = "AssetIdentifier"
 
-        compute_uri(
-            "https://example.org/sm/dexpi",
-            "Equipments.K-001.AssetIdentifier"
+    Result:
+        https://example.org/dexpi/hasAssetIdentifier
+    """
+
+    domain_upper = domain.upper()
+
+    if domain_upper not in semanticDict:
+        raise ValueError(
+            f"Unknown domain namespace: {domain}"
         )
-    """
 
-    sub_hash = b64(submodel_id)
-    path_hash = b64(path if path else "")
+    if not concept:
+        raise ValueError(
+            "Cannot create semantic predicate "
+            "without a concept."
+        )
 
     return URIRef(
-        f"{BASE_URI}/{sub_hash}/{path_hash}"
+        str(semanticDict[domain_upper])
+        + "has"
+        + concept
     )
 
 
-def predicate_from_idshort(id_short: str) -> URIRef:
+def make_domain_class(
+    domain: str,
+    concept: str,
+) -> URIRef:
+    """
+    Create a domain semantic class.
+
+    Example:
+        dexpi + Equipment
+        -> https://example.org/dexpi/Equipment
+    """
+
+    domain_upper = domain.upper()
+
+    if domain_upper not in semanticDict:
+        raise ValueError(
+            f"Unknown domain namespace: {domain}"
+        )
+
+    if not concept:
+        raise ValueError(
+            "Cannot create domain class "
+            "without a concept."
+        )
+
     return URIRef(
-        BASE_URI
-        + "/has"
-        + id_short[0].upper()
-        + id_short[1:]
+        str(semanticDict[domain_upper])
+        + concept
     )
 
 
-def predicate_for_relation(id_short: str) -> URIRef:
-    return URIRef(
-        BASE_URI + "/" + id_short
+# ---------------------------------------------------------------------------
+# RDF resource helpers
+# ---------------------------------------------------------------------------
+
+def add_resource_type(
+    graph: Graph,
+    resource_uri: URIRef,
+    aas_class: URIRef,
+    label: str,
+):
+    """
+    Add rdf:type and rdfs:label to an RDF resource.
+    """
+
+    graph.add(
+        (
+            resource_uri,
+            RDF.type,
+            aas_class,
+        )
+    )
+
+    graph.add(
+        (
+            resource_uri,
+            RDFS.label,
+            Literal(label),
+        )
     )
 
 
-def get_onto_concept(element):
+# ---------------------------------------------------------------------------
+# Semantic concept resolution
+# ---------------------------------------------------------------------------
+
+def resolve_instance_concept(element) -> str | None:
     """
-    Return the value of an ontoConcept qualifier.
+    Resolve the ontology concept attached to an AAS element.
     """
 
-    if not element.qualifiers:
-        return None
+    concept = get_ontology_concept(element)
 
-    for qualifier in element.qualifiers:
-
-        if qualifier.type == "ontoConcept":
-            return qualifier.value
+    if concept:
+        return str(concept)
 
     return None
 
 
-def map_xsd_datatype(value_type):
+def resolve_predicate_concept(element) -> str:
+    """
+    Resolve the semantic predicate concept.
 
-    mapping = {
-        "string": XSD.string,
-        "boolean": XSD.boolean,
-        "int": XSD.integer,
-        "integer": XSD.integer,
-        "float": XSD.float,
-        "double": XSD.double,
-        "decimal": XSD.decimal,
-    }
+    If no ontology concept exists, fall back to idShort.
+    """
 
-    if value_type is None:
-        return XSD.string
+    concept = resolve_instance_concept(element)
 
-    value_type = str(value_type).lower()
+    if concept:
+        return concept
 
-    return mapping.get(
-        value_type,
-        XSD.string
+    if not element.id_short:
+        raise ValueError(
+            "Cannot resolve predicate concept "
+            "without idShort."
+        )
+
+    return str(element.id_short)
+
+
+# ---------------------------------------------------------------------------
+# AAS element lifting
+# ---------------------------------------------------------------------------
+
+def lift_property(
+    graph: Graph,
+    instance_id: str,
+    element,
+    parent_path: str,
+    parent_uri: URIRef,
+    domain: str,
+):
+    """
+    Lift an AAS Property into RDF.
+    """
+
+    path = build_path(
+        parent_path,
+        element.id_short,
+    )
+
+    predicate = make_semantic_predicate(
+        domain,
+        element.id_short,
+    )
+
+    value = make_literal(
+        element.value,
+        element.value_type,
+    )
+
+    # Direct semantic property.
+    graph.add(
+        (
+            parent_uri,
+            predicate,
+            value,
+        )
+    )
+
+    # Represent the AAS Property itself as an RDF resource.
+    property_uri = compute_uri(
+        instance_id,
+        path,
+    )
+
+    graph.add(
+        (
+            property_uri,
+            RDF.type,
+            semanticDict["AAS"]["Property"],
+        )
+    )
+
+    graph.add(
+        (
+            property_uri,
+            RDFS.label,
+            Literal(element.id_short),
+        )
+    )
+
+    graph.add(
+        (
+            property_uri,
+            RDF.type,
+            OWL.NamedIndividual,
+        )
+    )
+
+    lift_semantic_id(
+        graph,
+        instance_id,
+        element,
+        path,
     )
 
 
-def fetch_template_graph(template_submodel_id: str) -> Graph:
+def lift_range(
+    graph: Graph,
+    instance_id: str,
+    element,
+    parent_path: str,
+    parent_uri: URIRef,
+    domain: str,
+):
     """
-    Fetch the complete template named graph from GraphDB.
+    Lift an AAS Range into RDF.
     """
 
-    graph_uri = compute_uri(template_submodel_id)
+    path = build_path(
+        parent_path,
+        element.id_short,
+    )
+
+    predicate = make_semantic_predicate(
+        domain,
+        element.id_short,
+    )
+
+    range_uri = compute_uri(
+        instance_id,
+        path,
+    )
+
+    add_resource_type(
+        graph,
+        range_uri,
+        semanticDict["AAS"]["Range"],
+        element.id_short,
+    )
+
+    graph.add(
+        (
+            parent_uri,
+            predicate,
+            range_uri,
+        )
+    )
+
+    lift_semantic_id(
+        graph,
+        instance_id,
+        element,
+        path,
+    )
+
+
+def resolve_model_reference(
+    instance_id: str,
+    reference,
+) -> URIRef:
+    """
+    Resolve an AAS model reference to the deterministic
+    RDF URI of the referenced instance element.
+    """
+
+    path_parts = []
+
+    for key in reference.keys:
+
+        key_type = key.type.value
+        key_value = str(key.value)
+
+        if key_type == "Submodel":
+            continue
+
+        path_parts.append(key_value)
+
+    path = ".".join(path_parts)
+
+    return compute_uri(
+        instance_id,
+        path,
+    )
+
+
+def lift_relationship(
+    graph: Graph,
+    instance_id: str,
+    element,
+    parent_path: str,
+    parent_uri: URIRef,
+    domain: str,
+):
+    """
+    Lift an AAS RelationshipElement into RDF.
+    """
+
+    first_uri = resolve_model_reference(
+        instance_id,
+        element.first,
+    )
+
+    second_uri = resolve_model_reference(
+        instance_id,
+        element.second,
+    )
+
+    predicate = URIRef(
+        str(semanticDict[domain.upper()])
+        + element.id_short
+    )
+
+    graph.add(
+        (
+            first_uri,
+            predicate,
+            second_uri,
+        )
+    )
+
+
+def lift_smc(
+    graph: Graph,
+    instance_id: str,
+    element,
+    parent_path: str,
+    parent_uri: URIRef,
+    domain: str,
+):
+    """
+    Lift an AAS SubmodelElementCollection into RDF.
+    """
+
+    path = build_path(
+        parent_path,
+        element.id_short,
+    )
+
+    element_uri = compute_uri(
+        instance_id,
+        path,
+    )
+
+    concept = resolve_instance_concept(
+        element
+    )
+
+    if concept:
+        instance_class = make_domain_class(
+            domain,
+            concept,
+        )
+
+        graph.add(
+            (
+                element_uri,
+                RDF.type,
+                instance_class,
+            )
+        )
+
+    graph.add(
+        (
+            element_uri,
+            RDF.type,
+            semanticDict["AAS"]["SMC"],
+        )
+    )
+
+    graph.add(
+        (
+            element_uri,
+            RDFS.label,
+            Literal(element.id_short),
+        )
+    )
+
+    predicate_concept = resolve_predicate_concept(
+        element
+    )
+
+    predicate = make_semantic_predicate(
+        domain,
+        predicate_concept,
+    )
+
+    graph.add(
+        (
+            parent_uri,
+            predicate,
+            element_uri,
+        )
+    )
+
+    lift_semantic_id(
+        graph,
+        instance_id,
+        element,
+        path,
+    )
+
+    lift_instance_elements(
+        graph=graph,
+        instance_id=instance_id,
+        elements=element.value,
+        parent_path=path,
+        parent_uri=element_uri,
+        domain=domain,
+    )
+
+
+def lift_instance_elements(
+    graph: Graph,
+    instance_id: str,
+    elements,
+    parent_path: str,
+    parent_uri: URIRef,
+    domain: str,
+):
+    """
+    Recursively lift supported AAS submodel elements.
+    """
+
+    for element in elements:
+
+        if isinstance(
+            element,
+            aas_types.Property,
+        ):
+
+            lift_property(
+                graph,
+                instance_id,
+                element,
+                parent_path,
+                parent_uri,
+                domain,
+            )
+
+        elif isinstance(
+            element,
+            aas_types.Range,
+        ):
+
+            lift_range(
+                graph,
+                instance_id,
+                element,
+                parent_path,
+                parent_uri,
+                domain,
+            )
+
+        elif isinstance(
+            element,
+            aas_types.SubmodelElementCollection,
+        ):
+
+            lift_smc(
+                graph,
+                instance_id,
+                element,
+                parent_path,
+                parent_uri,
+                domain,
+            )
+
+        elif isinstance(
+            element,
+            aas_types.RelationshipElement,
+        ):
+
+            lift_relationship(
+                graph,
+                instance_id,
+                element,
+                parent_path,
+                parent_uri,
+                domain,
+            )
+
+        else:
+
+            print(
+                "Warning: unsupported AAS element: "
+                f"{type(element).__name__}"
+            )
+
+
+# ---------------------------------------------------------------------------
+# Submodel lifting
+# ---------------------------------------------------------------------------
+
+def lift_submodel_root(
+    graph: Graph,
+    submodel,
+    domain: str,
+    template_submodel_id: str,
+):
+    """
+    Lift the AAS Submodel root.
+
+    The instance receives:
+      - aas:Submodel
+      - the template submodel URI as its semantic/template class
+    """
+
+    instance_id = submodel.id
+
+    root_uri = compute_uri(
+        instance_id,
+        "",
+    )
+
+    template_class = compute_uri(
+        template_submodel_id,
+        "",
+    )
+
+    add_resource_type(
+        graph,
+        root_uri,
+        semanticDict["AAS"]["Submodel"],
+        submodel.id_short,
+    )
+
+    graph.add(
+        (
+            root_uri,
+            RDF.type,
+            template_class,
+        )
+    )
+
+    lift_instance_elements(
+        graph=graph,
+        instance_id=instance_id,
+        elements=submodel.submodel_elements,
+        parent_path="",
+        parent_uri=root_uri,
+        domain=domain,
+    )
+
+    return root_uri
+
+
+def build_instance_graph(
+    submodel,
+    domain: str,
+    template_submodel_id: str,
+) -> Graph:
+    """
+    Build the RDF graph representing the AAS instance.
+    """
+
+    graph = Graph()
+
+    bind_common_namespaces(
+        graph,
+        domain,
+    )
+
+    lift_submodel_root(
+        graph,
+        submodel,
+        domain,
+        template_submodel_id,
+    )
+
+    return graph
+
+
+# ---------------------------------------------------------------------------
+# SHACL template retrieval
+# ---------------------------------------------------------------------------
+
+def fetch_template_graph(
+    template_submodel_id: str,
+) -> Graph:
+    """
+    Fetch the SHACL template graph from GraphDB.
+
+    The template submodel ID is converted into the same deterministic
+    graph URI used when the template was stored in GraphDB.
+    """
+
+    repository_url = get_graphdb_repository_url()
+
+    graph_uri = compute_uri(
+        template_submodel_id
+    )
 
     query = f"""
     CONSTRUCT {{
@@ -164,861 +676,274 @@ def fetch_template_graph(template_submodel_id: str) -> Graph:
     """
 
     response = requests.post(
-        GRAPHDB_QUERY_ENDPOINT,
+        repository_url,
         data={
-            "query": query
+            "query": query,
         },
         headers={
-            "Accept": "text/turtle"
+            "Accept": "text/turtle",
         },
+        timeout=30,
     )
 
     if response.status_code != 200:
+
+        print(
+            "GraphDB response:",
+            response.text,
+        )
+
         raise RuntimeError(
-            "Failed to fetch template graph from GraphDB.\n"
-            f"Status: {response.status_code}\n"
-            f"Response: {response.text}"
+            "Failed to fetch SHACL template graph "
+            f"from GraphDB. HTTP status: "
+            f"{response.status_code}"
         )
 
     template_graph = Graph()
 
     template_graph.parse(
         data=response.text,
-        format="turtle"
+        format="turtle",
     )
 
-    print(
-        f"Fetched template graph: {graph_uri}"
-    )
-
-    print(
-        f"Template triples: {len(template_graph)}"
-    )
+    if len(template_graph) == 0:
+        raise RuntimeError(
+            "GraphDB returned an empty SHACL template graph "
+            f"for template submodel ID: "
+            f"{template_submodel_id}"
+        )
 
     return template_graph
 
-def extract_shacl_graph(template_graph: Graph) -> Graph:
-    """
-    Extract only SHACL-related triples from the template graph.
 
-    The template graph contains both:
-
-        - OWL classes/properties
-        - SHACL NodeShapes
-        - SHACL PropertyShapes
-
-    Validation only needs the SHACL graph.
-
-    We therefore construct a separate Graph containing:
-
-        sh:NodeShape
-        sh:PropertyShape
-        sh:targetClass
-        sh:property
-        sh:path
-        sh:minCount
-        sh:maxCount
-        sh:datatype
-        sh:class
-        sh:node
-        sh:nodeKind
-        sh:hasValue
-        sh:in
-        sh:pattern
-        sh:minInclusive
-        sh:maxInclusive
-
-    together with all blank-node/property-shape
-    relationships needed by SHACL.
-    """
-
-    SH = semanticDict["SH"]
-
-    shacl_graph = Graph()
-
-    shacl_graph.bind(
-        "sh",
-        SH
-    )
-
-    shacl_graph.bind(
-        "aas",
-        semanticDict["AAS"]
-    )
-
-    shacl_graph.bind(
-        "qudt",
-        semanticDict["QUDT"]
-    )
-
-    shacl_graph.bind(
-        "unit",
-        semanticDict["UNIT"]
-    )
-
-
-    node_shapes = set(
-        template_graph.subjects(
-            RDF.type,
-            SH.NodeShape
-        )
-    )
-
-    print(
-        f"Found {len(node_shapes)} SHACL NodeShape(s)"
-    )
-
-    property_shapes = set(
-        template_graph.subjects(
-            RDF.type,
-            SH.PropertyShape
-        )
-    )
-
-    print(
-        f"Found {len(property_shapes)} SHACL PropertyShape(s)"
-    )
-
-
-    shacl_nodes = (
-        node_shapes
-        | property_shapes
-    )
-
-    queue = list(shacl_nodes)
-    visited = set()
-
-    while queue:
-
-        current = queue.pop()
-
-        if current in visited:
-            continue
-
-        visited.add(current)
-
-        for predicate, obj in template_graph.predicate_objects(
-            current
-        ):
-
-            # Keep SHACL structural triples.
-            if predicate.startswith(SH):
-
-                shacl_graph.add(
-                    (
-                        current,
-                        predicate,
-                        obj
-                    )
-                )
-
-                # Follow blank nodes / SHACL nodes.
-                if obj not in visited:
-                    queue.append(obj)
-
-    important_predicates = {
-        SH["targetClass"],
-        SH["property"],
-        SH["path"],
-        SH["minCount"],
-        SH["maxCount"],
-        SH["datatype"],
-        SH["class"],
-        SH["node"],
-        SH["nodeKind"],
-        SH["hasValue"],
-        SH["in"],
-        SH["pattern"],
-        SH["minInclusive"],
-        SH["maxInclusive"],
-        SH["minExclusive"],
-        SH["maxExclusive"],
-        SH["minLength"],
-        SH["maxLength"],
-        SH["languageIn"],
-        SH["uniqueLang"],
-        SH["equals"],
-        SH["disjoint"],
-        SH["lessThan"],
-        SH["lessThanOrEquals"],
-    }
-
-    for node in list(visited):
-
-        for predicate, obj in template_graph.predicate_objects(
-            node
-        ):
-
-            if predicate in important_predicates:
-
-                shacl_graph.add(
-                    (
-                        node,
-                        predicate,
-                        obj
-                    )
-                )
-
-    print(
-        f"Extracted SHACL triples: "
-        f"{len(shacl_graph)}"
-    )
-
-    return shacl_graph
-
+# ---------------------------------------------------------------------------
+# SHACL validation
+# ---------------------------------------------------------------------------
 
 def validate_instance(
-    data_graph: Graph,
-    shacl_graph: Graph
+    instance_graph: Graph,
+    template_graph: Graph,
+    instance_root: URIRef,
 ):
     """
-    Validate an instance RDF graph against SHACL.
+    Validate the complete instance graph against the SHACL graph
+    retrieved from GraphDB.
     """
 
-    print()
-    print("========================================")
-    print("SHACL VALIDATION")
-    print("========================================")
+    try:
 
-    conforms, report_graph, report_text = validate(
-        data_graph=data_graph,
-        shacl_graph=shacl_graph,
-        inference="rdfs",
-        debug=False,
-    )
-
-    if conforms:
-
-        print(
-            "✓ Instance conforms to template."
+        conforms, report_graph, report_text = validate(
+            instance_graph,
+            shacl_graph=template_graph,
+            inference="none",
+            abort_on_first=False,
+            allow_infos=False,
+            allow_warnings=False,
+            advanced=True,
+            debug=False,
         )
 
-        return True
+    except TypeError:
 
-    print(
-        "✗ Instance does NOT conform "
-        "to template."
-    )
+        # Compatibility fallback for pySHACL versions where
+        # some validation options are not available.
+        conforms, report_graph, report_text = validate(
+            instance_graph,
+            shacl_graph=template_graph,
+            inference="none",
+            abort_on_first=False,
+            allow_infos=False,
+            allow_warnings=False,
+            advanced=False,
+            debug=False,
+        )
 
     print()
+    print("SHACL VALIDATION")
+    print("================")
     print(report_text)
 
-    return False
+    if not conforms:
 
-def lift_elements(
-    graph: Graph,
-    submodel_id: str,
-    submodel_elements,
-    parent_path: str,
-    domain: str,
+        raise ValueError(
+            "AAS instance does not conform "
+            "to the template SHACL shapes."
+        )
+
+    return conforms, report_graph, report_text
+
+
+# ---------------------------------------------------------------------------
+# AAS JSON loading
+# ---------------------------------------------------------------------------
+
+def load_submodel(
+    filename: str,
 ):
     """
-    Lift all supported AAS instance elements.
+    Load an AAS Submodel from JSON.
     """
-
-    for element in submodel_elements:
-
-        if isinstance(
-            element,
-            aas_types.Property
-        ):
-
-            lift_property(
-                graph,
-                submodel_id,
-                element,
-                parent_path,
-            )
-
-        elif isinstance(
-            element,
-            aas_types.Range
-        ):
-
-            lift_range(
-                graph,
-                submodel_id,
-                element,
-                parent_path,
-            )
-
-        elif isinstance(
-            element,
-            aas_types.SubmodelElementCollection
-        ):
-
-            lift_smc(
-                graph,
-                submodel_id,
-                element,
-                parent_path,
-                domain,
-            )
-
-        elif isinstance(
-            element,
-            aas_types.RelationshipElement
-        ):
-
-            lift_relationship(
-                graph,
-                submodel_id,
-                element,
-                parent_path,
-            )
-
-
-def lift_smc(
-    graph: Graph,
-    submodel_id: str,
-    smc_element,
-    parent_path: str,
-    domain: str,
-):
-    """
-    Lift an instance SubmodelElementCollection.
-
-    Example:
-
-        Equipments
-            K-001
-                AssetIdentifier
-                Address
-    """
-
-    if parent_path:
-
-        path = (
-            parent_path
-            + "."
-            + smc_element.id_short
-        )
-
-    else:
-
-        path = smc_element.id_short
-
-    smc_uri = compute_uri(
-        submodel_id,
-        path
-    )
-
-    parent_node = compute_uri(
-        submodel_id,
-        parent_path
-    )
-
-    graph.add(
-        (
-            smc_uri,
-            RDF.type,
-            semanticDict["AAS"].SMC
-        )
-    )
-
-    graph.add(
-        (
-            smc_uri,
-            RDFS.label,
-            Literal(
-                smc_element.id_short
-            )
-        )
-    )
-
-    onto_concept = get_onto_concept(
-        smc_element
-    )
-
-    if onto_concept:
-
-        concept_uri = URIRef(
-            f"{domain}:{onto_concept}"
-        )
-
-        graph.add(
-            (
-                concept_uri,
-                RDF.type,
-                semanticDict["AAS"].SMC
-            )
-        )
-
-        graph.add(
-            (
-                concept_uri,
-                RDFS.label,
-                Literal(onto_concept)
-            )
-        )
-
-        graph.add(
-            (
-                smc_uri,
-                RDF.type,
-                concept_uri
-            )
-        )
-
-        predicate = predicate_from_idshort(
-            onto_concept
-        )
-
-    else:
-
-        predicate = predicate_from_idshort(
-            smc_element.id_short
-        )
-
-    graph.add(
-        (
-            parent_node,
-            predicate,
-            smc_uri
-        )
-    )
-
-
-    lift_elements(
-        graph,
-        submodel_id,
-        smc_element.value,
-        path,
-        domain,
-    )
-
-
-def lift_property(
-    graph: Graph,
-    submodel_id: str,
-    property_element,
-    parent_path: str,
-):
-    """
-    Lift an AAS Property instance.
-    """
-
-    if parent_path:
-
-        path = (
-            parent_path
-            + "."
-            + property_element.id_short
-        )
-
-    else:
-
-        path = property_element.id_short
-
-    parent_node = compute_uri(
-        submodel_id,
-        parent_path
-    )
-
-    predicate = predicate_from_idshort(
-        property_element.id_short
-    )
-
-    datatype = map_xsd_datatype(
-        property_element.value_type
-    )
-
-    value = Literal(
-        property_element.value,
-        datatype=datatype
-    )
-
-    graph.add(
-        (
-            parent_node,
-            predicate,
-            value
-        )
-    )
-
-
-def lift_range(
-    graph: Graph,
-    submodel_id: str,
-    range_element,
-    parent_path: str,
-):
-    """
-    Lift an AAS Range instance.
-    """
-
-    if parent_path:
-
-        path = (
-            parent_path
-            + "."
-            + range_element.id_short
-        )
-
-    else:
-
-        path = range_element.id_short
-
-    parent_node = compute_uri(
-        submodel_id,
-        parent_path
-    )
-
-    range_uri = compute_uri(
-        submodel_id,
-        path
-        + ".interval"
-    )
-
-    predicate = predicate_from_idshort(
-        range_element.id_short
-    )
-
-    graph.add(
-        (
-            parent_node,
-            predicate,
-            range_uri
-        )
-    )
-
-    graph.add(
-        (
-            range_uri,
-            RDF.type,
-            semanticDict["AAS"].Interval
-        )
-    )
-
-    datatype = map_xsd_datatype(
-        range_element.value_type
-    )
-
-    if (
-        hasattr(range_element, "min")
-        and range_element.min is not None
-    ):
-
-        graph.add(
-            (
-                range_uri,
-                semanticDict["AAS"].min,
-                Literal(
-                    range_element.min,
-                    datatype=datatype
-                )
-            )
-        )
-
-    if (
-        hasattr(range_element, "max")
-        and range_element.max is not None
-    ):
-
-        graph.add(
-            (
-                range_uri,
-                semanticDict["AAS"].max,
-                Literal(
-                    range_element.max,
-                    datatype=datatype
-                )
-            )
-        )
-
-
-def lift_relationship(
-    graph: Graph,
-    submodel_id: str,
-    relationship_element,
-    parent_path: str,
-):
-    """
-    Lift an AAS RelationshipElement instance.
-    """
-
-    first_keys = relationship_element.first.keys
-
-    first_submodel = first_keys[0].value
-
-    first_path = ".".join(
-        key.value
-        for key in first_keys[1:]
-    )
-
-    first_uri = compute_uri(
-        first_submodel,
-        first_path
-    )
-
-    second_keys = relationship_element.second.keys
-
-    second_submodel = second_keys[0].value
-
-    second_path = ".".join(
-        key.value
-        for key in second_keys[1:]
-    )
-
-    second_uri = compute_uri(
-        second_submodel,
-        second_path
-    )
-
-    predicate = predicate_for_relation(
-        relationship_element.id_short
-    )
-
-    graph.add(
-        (
-            first_uri,
-            predicate,
-            second_uri
-        )
-    )
-
-
-def lift_instance(
-    aas_submodel,
-    domain: str,
-) -> Graph:
-    """
-    Lift one AAS instance into an RDF graph.
-    """
-
-    graph = Graph()
-
-    graph.bind(
-        "aas",
-        semanticDict["AAS"]
-    )
-
-    graph.bind(
-        "ex",
-        semanticDict["EX"]
-    )
-
-    graph.bind(
-        "qudt",
-        semanticDict["QUDT"]
-    )
-
-    graph.bind(
-        "unit",
-        semanticDict["UNIT"]
-    )
-
-
-    root = compute_uri(
-        aas_submodel.id
-    )
-
-    graph.add(
-        (
-            root,
-            RDF.type,
-            semanticDict["AAS"].SubmodelInstance
-        )
-    )
-
-    graph.add(
-        (
-            root,
-            RDFS.label,
-            Literal(
-                aas_submodel.id_short
-            )
-        )
-    )
-
-    graph.add(
-        (
-            semanticDict["AAS"].Interval,
-            RDF.type,
-            URIRef(
-                "http://www.w3.org/2002/07/owl#Class"
-            )
-        )
-    )
-
-    graph.add(
-        (
-            semanticDict["AAS"].Interval,
-            RDFS.label,
-            Literal("Interval")
-        )
-    )
-
-
-    lift_elements(
-        graph,
-        aas_submodel.id,
-        aas_submodel.submodel_elements,
-        "",
-        domain,
-    )
-
-    return graph
-
-
-def push_instance_graph(
-    graph: Graph,
-    submodel_id: str,
-):
-    """
-    Push the validated instance graph
-    into its own named graph.
-    """
-
-    graph_uri = compute_uri(
-        submodel_id
-    )
-
-    nt_data = graph.serialize(
-        format="nt"
-    )
-
-    query = f"""
-    INSERT DATA {{
-        GRAPH <{graph_uri}> {{
-            {nt_data}
-        }}
-    }}
-    """
-
-    response = requests.post(
-        GRAPHDB_STATEMENTS_ENDPOINT,
-        data=query.encode("utf-8"),
-        headers=GRAPHDB_UPDATE_HEADERS,
-    )
-
-    if response.status_code not in (
-        200,
-        204,
-    ):
-
-        raise RuntimeError(
-            "Failed to insert instance graph "
-            "into GraphDB.\n"
-            f"Status: {response.status_code}\n"
-            f"Response: {response.text}"
-        )
-
-    print()
-    print(
-        f"✓ Instance graph pushed to: "
-        f"{graph_uri}"
-    )
-
-if __name__ == "__main__":
-
-
-    INSTANCE_FILE = "sample_dexpi.json"
-
-    # The template is deliberately identified separately
-    # from the instance.
-    TEMPLATE_ID = (
-        "https://example.org/sm/dexpi"
-    )
-
-    DOMAIN = "DEXPI"
 
     with open(
-        INSTANCE_FILE,
+        filename,
         "r",
         encoding="utf-8",
     ) as f:
 
         model = json.load(f)
 
-    instance_submodel = (
-        aas_jsonization.submodel_from_jsonable(
-            model
-        )
-    )
-    print("JSON Serialization is completed Successfully")
-    print()
-    print("========================================")
-    print("DEXPI INSTANCE LIFTING")
-    print("========================================")
-
-    print(
-        f"Instance ID: "
-        f"{instance_submodel.id}"
+    return aas_jsonization.submodel_from_jsonable(
+        model
     )
 
-    print("Fetching DEXPI template from GraphDB...")
 
-    template_graph = fetch_template_graph(
-        TEMPLATE_ID
-    )
+# ---------------------------------------------------------------------------
+# Main processing
+# ---------------------------------------------------------------------------
 
-    shacl_graph = extract_shacl_graph(
-        template_graph
-    )
-
-    # Optional debugging output
-    print()
-    print(
-        "========================================"
-    )
-    print("EXTRACTED SHACL")
-    print(
-        "========================================"
-    )
-
-    print(
-        shacl_graph.serialize(
-            format="turtle"
-        )
-    )
-
-    instance_graph = lift_instance(
-        instance_submodel,
-        DOMAIN,
-    )
+def main(
+    domain: str,
+    instance_file: str,
+    template_submodel_id: str,
+):
+    """
+    Lift, validate and store one AAS instance.
+    """
 
     print()
-    print(
-        "========================================"
-    )
-    print("INSTANCE RDF")
-    print(
-        "========================================"
+    print("==========================================")
+    print("AAS INSTANCE LIFTING")
+    print("==========================================")
+
+    # -------------------------------------------------------
+    # Load AAS instance
+    # -------------------------------------------------------
+
+    instance = load_submodel(
+        instance_file
     )
 
+    print(
+        f"Instance ID: {instance.id}"
+    )
+
+    print(
+        f"Instance idShort: {instance.id_short}"
+    )
+
+    # -------------------------------------------------------
+    # Build instance RDF graph
+    # -------------------------------------------------------
+
+    print()
+    print("Building instance graph...")
+
+    instance_graph = build_instance_graph(
+        instance,
+        domain,
+        template_submodel_id,
+    )
+
+    print(
+        f"Instance triples: {len(instance_graph)}"
+    )
+    
     print(
         instance_graph.serialize(
             format="turtle"
         )
     )
+    
+    print("===========================")
+    
+    # -------------------------------------------------------
+    # Fetch SHACL template from GraphDB
+    # -------------------------------------------------------
 
-
-    conforms = validate_instance(
-        instance_graph,
-        shacl_graph,
-    )
-
-    if not conforms:
+    if VALIDATE_INSTANCE:
 
         print()
         print(
-            "Instance was NOT pushed to GraphDB "
-            "because SHACL validation failed."
+            "Fetching SHACL template from GraphDB..."
         )
 
-        raise SystemExit(1)
+        template_graph = fetch_template_graph(
+            template_submodel_id
+        )
 
-    push_instance_graph(
-        instance_graph,
-        instance_submodel.id,
+        print(
+            f"SHACL template triples: "
+            f"{len(template_graph)}"
+        )
+
+        # ---------------------------------------------------
+        # Validate instance
+        # ---------------------------------------------------
+
+        instance_root = compute_uri(
+            instance.id,
+            "",
+        )
+
+        validate_instance(
+            instance_graph,
+            template_graph,
+            instance_root,
+        )
+
+        print()
+        print("SHACL validation successful.")
+
+    # -------------------------------------------------------
+    # Push instance graph to GraphDB
+    # -------------------------------------------------------
+
+    graph_uri = (
+        INSTANCE_GRAPH_URI
+        if INSTANCE_GRAPH_URI is not None
+        else compute_uri(instance.id)
     )
 
     print()
     print(
-        "========================================"
+        "Pushing instance graph to GraphDB..."
     )
-    print("DONE")
-    print(
-        "========================================"
+
+    push_graph_to_graphdb(
+        instance_graph,
+        graph_uri,
     )
+
+    print()
+    print("==========================================")
+    print("INSTANCE LIFTING COMPLETE")
+    print("==========================================")
+
+
+# ---------------------------------------------------------------------------
+# Entry point
+# ---------------------------------------------------------------------------
+
+if __name__ == "__main__":
+
+    instance_data = {
+        "dexpi": (
+            "sample_dexpi_instance.json",
+            "https://example.org/sm/dexpi",
+        ),
+        "ecad": (
+            "sample_ecad_instance.json",
+            "https://example.org/sm/ecad",
+        ),
+    }
+
+    for domain, (
+        instance_file,
+        template_submodel_id,
+    ) in instance_data.items():
+
+        main(
+            domain,
+            instance_file,
+            template_submodel_id,
+        )
