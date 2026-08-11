@@ -101,7 +101,7 @@ def resolve_element(
 
 if __name__ == "__main__":
 
-    with open("example/cstr.safsl", encoding="utf-8") as f:
+    with open("example/example2.safsl", encoding="utf-8") as f:
         source = f.read()
 
     submodels = {

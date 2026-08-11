@@ -7,6 +7,10 @@ StartTerminal =[ExampleQ1];
 			Property p1 = new Property("xs:float","QUDT:K","2");
 			Property p2 = new Property("xs:float","QUDT:DEG_C","10");
 			Property p3 = new Property("xs:float","QUDT:K","15");
+			Range r3 = new Range("xs:float","QUDT:K","15","20");
+			
+			SMC sc1 = new SMC {p1,p2};
+			Submodel sc1 = new Submodel {sc1};
         }
 
 
