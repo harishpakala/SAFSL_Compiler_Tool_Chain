@@ -39,13 +39,9 @@ ECAD Submodel Template [ecad_template.json](https://github.com/harishpakala/SAFS
 DEXPI Submodel Instance  [sample_dexpi_instance.json](https://github.com/harishpakala/SAFSL_Compiler_Tool_Chain/blob/main/semantic/sample_dexpi_instance.json)  <br/>
 ECAD Submodel Instance [sample_ecad_instance.json](https://github.com/harishpakala/SAFSL_Compiler_Tool_Chain/blob/main/semantic/dexpi_template.json)  <br/>
 
-BASE_URI = (
-    "http://org.example.com"
-)
+BASE_URI = "http://org.example.com"
 
-GRAPHDB_ENDPOINT = (
-    "http://localhost:7200/"
-    "repositories/AAS/statements"
+GRAPHDB_ENDPOINT = "http://localhost:7200/repositories/AAS/statements"
 )
 
 ## Issues
