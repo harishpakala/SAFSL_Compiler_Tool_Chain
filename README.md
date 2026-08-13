@@ -33,6 +33,12 @@ Submodel Instance Lifitng <br/>
 
 <strong>python3.12 [instance_lifting.py](https://github.com/harishpakala/SAFSL_Compiler_Tool_Chain/blob/main/semantic/instance_lifting.py) </strong> <br/>
 
+DEXPI Submodel Template [dexpi_template.json](https://github.com/harishpakala/SAFSL_Compiler_Tool_Chain/blob/main/semantic/dexpi_template.json)  <br/>
+ECAD Submodel Template [ecad_template.json](https://github.com/harishpakala/SAFSL_Compiler_Tool_Chain/blob/main/semantic/ecad_template.json)  <br/>
+
+DEXPI Submodel Instance  [sample_dexpi_instance.json](https://github.com/harishpakala/SAFSL_Compiler_Tool_Chain/blob/main/semantic/sample_dexpi_instance.json)  <br/>
+ECAD Submodel Instance [sample_ecad_instance.json](https://github.com/harishpakala/SAFSL_Compiler_Tool_Chain/blob/main/semantic/dexpi_template.json)  <br/>
+
 ## Issues
 If you want to request new features or report bug [submit a new issue](https://github.com/harishpakala/SAFSL_Compiler_Tool_Chain/issues/new)
 
