@@ -1,7 +1,7 @@
 {
   "modelType": "Submodel",
   "id": "https://example.org/sm/dexpi25",
-  "idShort": "DEXPI25",
+  "idShort": "DEXPI",
   "semanticId": {
     "type": "ExternalReference",
     "keys": [

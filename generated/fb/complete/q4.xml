@@ -1,0 +1,64 @@
+<?xml version='1.0' encoding='utf-8'?>
+<FBType name="q4">
+  <InterfaceList>
+    <EventInputs>
+      <Event name="EP4"/>
+    </EventInputs>
+    <EventOutputs>
+      <Event name="EP2"/>
+    </EventOutputs>
+    <InputVars>
+      <VarDeclaration name="LS" type="REAL" Value="0" Address="Empty"/>
+      <VarDeclaration name="LS2" type="REAL" Value="0.6"/>
+    </InputVars>
+    <OutputVars>
+      <VarDeclaration name="va1" type="BOOL" Value="TRUE" Address="Empty"/>
+      <VarDeclaration name="va2" type="BOOL" Value="TRUE" Address="Empty"/>
+      <VarDeclaration name="va3" type="BOOL" Value="TRUE" Address="Empty"/>
+      <VarDeclaration name="va4" type="BOOL" Value="TRUE" Address="Empty"/>
+    </OutputVars>
+  </InterfaceList>
+  <BasicFB>
+    <InternalVars/>
+    <Algorithm Name="ALG" Type="ST"><![CDATA[va1 := FALSE;
+va2 := FALSE;
+va3 := FALSE;
+va4 := FALSE;
+va1 := TRUE;
+va2 := FALSE;
+va3 := FALSE;
+va4 := FALSE;
+va1 := FALSE;
+va2 := TRUE;
+va3 := FALSE;
+va4 := FALSE;
+IF (LS >= LS3) THEN
+va2 := FALSE;
+va4 := TRUE;
+END_IF;
+IF ((pH >= pHMin) AND (pH <= pHMax)) THEN
+va1 := FALSE;
+va2 := FALSE;
+va3 := TRUE;
+END_IF;
+va1 := FALSE;
+va2 := FALSE;
+va3 := FALSE;
+va4 := TRUE;]]></Algorithm>
+  </BasicFB>
+  <ECC>
+    <ECState name="START" Initial="true"/>
+    <ECState name="BODY">
+      <ECAction Algorithm="ALG"/>
+    </ECState>
+    <ECTransition Source="START" Destination="BODY">
+      <ECEventCondition Event="EP4"/>
+    </ECTransition>
+    <ECTransition Source="BODY" Destination="EP2_STATE">
+      <ECCondition>(LS &lt;= LS2)</ECCondition>
+    </ECTransition>
+    <ECState Name="EP2_STATE">
+      <ECAction Output="EP2"/>
+    </ECState>
+  </ECC>
+</FBType>

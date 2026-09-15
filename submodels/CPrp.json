@@ -5,9 +5,7 @@
     "submodelElements": [
         {
             "idShort": "LS1",
-            "modelType": {
-                "name": "Property"
-            },
+            "modelType": "Property",
             "valueType": "xs:float",
             "value": "0.2",
 			"semanticId": {
@@ -21,9 +19,7 @@
         },
 		{
 		    "idShort": "LS2",
-		    "modelType": {
-		        "name": "Property"
-		    },
+			 "modelType": "Property",
 		    "valueType": "xs:float",
 		    "value": "0.6",
 			"semanticId": {
@@ -37,9 +33,7 @@
 		},
 		{
 		    "idShort": "LS3",
-		    "modelType": {
-		        "name": "Property"
-		    },
+			"modelType": "Property",
 		    "valueType": "xs:float",
 		    "value": "0.9",
 			"semanticId": {
@@ -53,9 +47,7 @@
 		},
 		{
 		    "idShort": "pHMin",
-		    "modelType": {
-		        "name": "Property"
-		    },
+			"modelType": "Property",
 		    "valueType": "xs:float",
 		    "value": "6.5",
 			"semanticId": {
@@ -69,9 +61,7 @@
 		},
 		{
 		    "idShort": "pHMax",
-		    "modelType": {
-		        "name": "Property"
-		    },
+			"modelType": "Property",
 		    "valueType": "xs:float",
 		    "value": "7.5",
 			"semanticId": {
@@ -85,9 +75,7 @@
 		},
 		{
 		    "idShort": "Start",
-		    "modelType": {
-		        "name": "Property"
-		    },
+			"modelType": "Property",
 		    "valueType": "xs:float",
 		    "value": "Yes"
 		}

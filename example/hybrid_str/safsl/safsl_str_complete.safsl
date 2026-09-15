@@ -1,43 +1,24 @@
 Specification STR_P {
-
+    StartTerminal=[q0];
     Repository="example.com";
-
-    StartTerminal=[START];
-
-
-    // AAS Submodel References
-
-    Ref Submodel DEXPI="REVYUEk=";
-    Ref Submodel ECAD="RUNBRA==";
-    Ref Submodel STRProp="U1RSUHJvcA==";
-
-
+	Ref Submodel DEXPI="REVYUEkyNQ==";
+	Ref Submodel CPrp="Q1NUUlByb3A=";
+    
     // Asset References
 
-    Ref SMC LT=AFS.PIF_LT_01;
-    Ref SMC AT=AFS.PIF_AT_01;
+	Ref SMC VA1 = DEXPI.ActuatingFunctions.VA_CV_001;
+	Ref SMC VA2 = DEXPI.ActuatingFunctions.VA_CV_002;
+	Ref SMC VA3 = DEXPI.ActuatingFunctions.VA_CV_003;
+	Ref SMC VA4 = DEXPI.ActuatingFunctions.VA_CV_004;
+	Ref SMC LI = DEXPI.InstrumentationFunctions.LI_01;
+	Ref SMC AT = DEXPI.InstrumentationFunctions.AT_01;
+	Ref Property LS1=CPrp.LS1; 
+	Ref Property LS2=CPrp.LS2;
+	Ref Property LS3=CPrp.LS3;
+	Ref Property pHMin=CPrp.pHMin;
+	Ref Property pHMax=CPrp.pHMax;
+	Ref Property StartCmd=CPrp.Start;
 
-    Ref SMC VA1=AFS.VA_CV_001;
-    Ref SMC VA2=AFS.VA_CV_002;
-    Ref SMC VA3=AFS.VA_CV_003;
-    Ref SMC VA4=AFS.VA_CV_004;
-
-
-
-    // Process Parameters
-
-    Property LS1=CPrp.LS1;
-    Property LS2=CPrp.LS2;
-    Property LS3=CPrp.LS3;
-
-    Property pHMin=CPrp.pHMin;
-    Property pHMax=CPrp.pHMax;
-
-
-
-    //--------------------------------------------------
-    // q0 : Idle
-    //--------------------------------------------------
 
     Process q0 {
 
@@ -80,7 +61,7 @@ Specification STR_P {
             Terminal Output EP2;
 
 
-            Port Input LS=LT;
+            Port Input LS=LI;
             Port Input LS2=LS2;
 
 
@@ -173,7 +154,7 @@ Specification STR_P {
 
 
 
-            Port Input LS=LT;
+            Port Input LS=LI;
             Port Input pH=AT;
 
 
@@ -262,7 +243,7 @@ Specification STR_P {
             Terminal Output EP2;
 
 
-            Port Input LS=LT;
+            Port Input LS=LI;
             Port Input LS2=LS2;
 
 
@@ -310,7 +291,7 @@ Specification STR_P {
             Terminal Output START;
 
 
-            Port Input LS=LT;
+            Port Input LS=LI;
             Port Input LS1=LS1;
 
 

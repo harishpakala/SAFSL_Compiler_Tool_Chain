@@ -62,7 +62,7 @@ def parse_element(submodel_name, element, path=None):
     if path is None:
         path = []
 
-    element_type = element["modelType"]["name"]
+    element_type = element["modelType"]
 
     current_path = path + [element["idShort"]]
 

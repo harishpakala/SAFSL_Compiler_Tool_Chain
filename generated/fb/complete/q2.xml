@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='utf-8'?>
+<FBType name="q2">
+  <InterfaceList>
+    <EventInputs>
+      <Event name="EP2"/>
+    </EventInputs>
+    <EventOutputs>
+      <Event name="EP3"/>
+    </EventOutputs>
+    <InputVars>
+      <VarDeclaration name="pH" type="REAL" Value="0" Address="Empty"/>
+      <VarDeclaration name="pHMin" type="REAL" Value="6.5"/>
+    </InputVars>
+    <OutputVars>
+      <VarDeclaration name="va1" type="BOOL" Value="TRUE" Address="Empty"/>
+      <VarDeclaration name="va2" type="BOOL" Value="TRUE" Address="Empty"/>
+      <VarDeclaration name="va3" type="BOOL" Value="TRUE" Address="Empty"/>
+      <VarDeclaration name="va4" type="BOOL" Value="TRUE" Address="Empty"/>
+    </OutputVars>
+  </InterfaceList>
+  <BasicFB>
+    <InternalVars/>
+    <Algorithm Name="ALG" Type="ST"><![CDATA[va1 := FALSE;
+va2 := FALSE;
+va3 := FALSE;
+va4 := FALSE;
+va1 := TRUE;
+va2 := FALSE;
+va3 := FALSE;
+va4 := FALSE;
+va1 := FALSE;
+va2 := TRUE;
+va3 := FALSE;
+va4 := FALSE;]]></Algorithm>
+  </BasicFB>
+  <ECC>
+    <ECState name="START" Initial="true"/>
+    <ECState name="BODY">
+      <ECAction Algorithm="ALG"/>
+    </ECState>
+    <ECTransition Source="START" Destination="BODY">
+      <ECEventCondition Event="EP2"/>
+    </ECTransition>
+    <ECTransition Source="BODY" Destination="EP3_STATE">
+      <ECCondition>(pH &lt;= pHMin)</ECCondition>
+    </ECTransition>
+    <ECState Name="EP3_STATE">
+      <ECAction Output="EP3"/>
+    </ECState>
+  </ECC>
+</FBType>
